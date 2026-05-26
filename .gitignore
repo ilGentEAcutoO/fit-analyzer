@@ -19,6 +19,11 @@ build/
 coverage/
 playwright-report/
 test-results/
+.playwright-mcp/
+
+# typescript build cache
+*.tsbuildinfo
+dist-tsconfig-node/
 
 # editor / os
 .DS_Store

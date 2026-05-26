@@ -1,0 +1,375 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Decisions · post-E3 · fit-analyzer</title>
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+:root{
+  --paper:#F4F1E8;--paper-2:#EDE9DC;--card:#FFFFFF;--card-2:#FBF9F2;
+  --chrome:#E9E4D6;--line:#E2DCCC;--line-2:#D4CCB8;
+  --ink:#1B1A17;--ink-2:#55514A;--ink-3:#8B8678;--ink-4:#A8A395;
+  --clay:#C8623E;--clay-soft:#F2E0D6;--clay-line:#E0A98E;
+  --olive:#6F864F;--olive-soft:#E4E8D8;--olive-line:#AEBE8E;
+  --sky:#5E80A6;--sky-soft:#DCE4ED;--gold:#B98828;--gold-soft:#F1E6CC;
+  --red:#B4452F;--red-soft:#F2DDD7;--oat:#E3DACC;
+  --dark:#1F1E1B;--dark-2:#2A2925;--dark-ink:#E9E5DA;--dark-dim:#8D887B;
+  --serif:'Iowan Old Style','Palatino Linotype',Palatino,Georgia,serif;
+  --sans:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,Helvetica,Arial,sans-serif;
+  --mono:'SF Mono',ui-monospace,'JetBrains Mono',Menlo,Consolas,monospace;
+  --r:14px;--r-s:9px;
+  --shadow:0 1px 2px rgba(31,30,27,.05),0 10px 30px -12px rgba(31,30,27,.16);
+  --shadow-s:0 1px 2px rgba(31,30,27,.06),0 4px 12px -6px rgba(31,30,27,.12);
+  color-scheme:light;
+}
+html,body{background:var(--paper)}
+body{font-family:var(--sans);color:var(--ink);line-height:1.55;font-size:14.5px;-webkit-font-smoothing:antialiased}
+.page{max-width:1200px;margin:0 auto;padding:28px 22px 80px}
+.kicker{font-family:var(--mono);font-size:11px;font-weight:600;letter-spacing:.16em;text-transform:uppercase;color:var(--ink-3)}
+h1{font-family:var(--serif);font-size:32px;font-weight:600;letter-spacing:-.015em;line-height:1.1}
+h2{font-family:var(--serif);font-size:22px;font-weight:600;letter-spacing:-.01em;margin:0 0 14px}
+h3{font-family:var(--serif);font-size:16px;font-weight:600;margin:0 0 8px}
+.lead{font-size:15px;color:var(--ink-2);margin-top:6px}
+code{font-family:var(--mono);font-size:.88em;background:var(--paper-2);padding:.1em .38em;border-radius:5px;color:var(--ink)}
+.mono{font-family:var(--mono)}
+.muted{color:var(--ink-3)} .small{font-size:12.5px}
+
+/* status strip */
+.strip{display:grid;grid-template-columns:1fr auto;gap:18px;align-items:center;
+  background:linear-gradient(180deg,var(--card) 0%,var(--card-2) 100%);
+  border:1px solid var(--line);border-radius:var(--r);padding:18px 22px;box-shadow:var(--shadow-s);margin:14px 0 26px}
+.bar-track{height:10px;background:var(--oat);border-radius:5px;overflow:hidden;margin-top:6px}
+.bar-fill{height:100%;background:linear-gradient(90deg,var(--olive),var(--olive));border-radius:5px}
+
+/* section */
+.section{margin-top:32px}
+.sec-no{font-family:var(--mono);font-size:11.5px;letter-spacing:.12em;color:var(--clay);margin-bottom:4px}
+
+/* option grids */
+.opt-3{display:grid;grid-template-columns:repeat(3,1fr);gap:14px}
+.opt-4{display:grid;grid-template-columns:repeat(4,1fr);gap:14px}
+
+/* option card */
+.opt{background:var(--card);border:1.5px solid var(--line);border-radius:var(--r);padding:16px 18px;
+  box-shadow:var(--shadow-s);display:flex;flex-direction:column;gap:10px;transition:.15s}
+.opt.pick{border-color:var(--olive);background:var(--card);box-shadow:0 0 0 3px var(--olive-soft),var(--shadow-s)}
+.opt.warn{border-color:var(--gold-soft)}
+.opt .hd{display:flex;align-items:center;gap:8px;justify-content:space-between}
+.opt .hd .id{font-family:var(--mono);font-size:11.5px;color:var(--ink-4)}
+.opt .ttl{font-family:var(--serif);font-size:17px;font-weight:600;line-height:1.2}
+.opt .desc{font-size:13px;color:var(--ink-2);line-height:1.5}
+.opt .why{font-size:12px;color:var(--ink-3);line-height:1.5;padding-top:8px;border-top:1px dashed var(--line)}
+
+/* badges */
+.badge{font-family:var(--mono);font-size:10px;font-weight:700;letter-spacing:.06em;
+  text-transform:uppercase;padding:2.5px 7px;border-radius:5px;display:inline-block}
+.badge.rec{background:var(--olive-soft);color:var(--olive)}
+.badge.fast{background:var(--sky-soft);color:var(--sky)}
+.badge.user{background:var(--clay-soft);color:var(--clay)}
+.badge.slow{background:var(--gold-soft);color:var(--gold)}
+.badge.end{background:var(--paper-2);color:var(--ink-3)}
+
+/* meta row */
+.meta{display:flex;gap:6px;flex-wrap:wrap}
+.tag{font-family:var(--mono);font-size:10.5px;color:var(--ink-2);background:var(--card-2);
+  border:1px solid var(--line);border-radius:5px;padding:2px 6px}
+
+/* preview blocks ---------------------------------------- */
+/* code/terminal */
+.term{background:var(--dark);border-radius:var(--r-s);overflow:hidden;border:1px solid var(--dark-2);
+  font-family:var(--mono);font-size:11.5px;line-height:1.55}
+.term .top{background:var(--dark-2);padding:5px 10px;display:flex;justify-content:space-between;
+  color:var(--dark-dim);font-size:10.5px;border-bottom:1px solid #000}
+.term pre{padding:10px 12px;color:var(--dark-ink);overflow-x:auto;margin:0;white-space:pre-wrap;word-break:break-word}
+.term .c{color:var(--dark-dim)} .term .k{color:#D9A05B} .term .s{color:#9BB06E}
+.term .add{color:#9BB06E} .term .del{color:#D98A6E;text-decoration:line-through}
+.term .hi{color:#E0A98E;font-weight:600}
+
+/* mini result */
+.mini{background:var(--card-2);border:1px solid var(--line);border-radius:var(--r-s);padding:10px 12px}
+.mini .row{display:flex;justify-content:space-between;align-items:center;font-family:var(--mono);font-size:11.5px;padding:3px 0}
+.mini .row + .row{border-top:1px dashed var(--line)}
+.mini .strong{color:var(--olive);font-weight:700}
+.mini .mod{color:var(--gold);font-weight:700}
+.mini .weak{color:var(--red);font-weight:700}
+
+/* mock UI screen */
+.screen{background:var(--card-2);border:1.5px solid var(--line);border-radius:6px;padding:8px;display:flex;flex-direction:column;gap:5px;height:128px}
+.screen .label{font-family:var(--mono);font-size:9.5px;color:var(--ink-3);letter-spacing:.08em;text-transform:uppercase}
+.screen .body{flex:1;background:var(--card);border:1px dashed var(--line);border-radius:4px;display:flex;align-items:center;justify-content:center;padding:4px;font-size:10.5px;color:var(--ink-2);text-align:center}
+.screen.idle .body{color:var(--ink-3)}
+.screen.loading .body{background:var(--sky-soft);color:var(--sky);font-weight:600}
+.screen.done .body{background:var(--olive-soft);color:var(--olive);font-weight:600}
+.screen.error .body{background:var(--red-soft);color:var(--red);font-weight:600}
+.screen.rate .body{background:var(--clay-soft);color:var(--clay);font-weight:600}
+
+/* mock browser frame for deploy preview */
+.browser{background:var(--card-2);border:1.5px solid var(--line);border-radius:6px;overflow:hidden}
+.browser .url{background:var(--chrome);padding:6px 10px;font-family:var(--mono);font-size:11px;color:var(--ink-3);border-bottom:1px solid var(--line);display:flex;gap:6px;align-items:center}
+.browser .url::before{content:"●●●";color:var(--ink-4);letter-spacing:2px;margin-right:4px;font-size:8px}
+.browser .body{padding:12px;font-size:11.5px;color:var(--ink-2);min-height:96px;background:var(--card)}
+
+/* diff block ----- compact */
+.diff{font-family:var(--mono);font-size:11px;background:var(--paper-2);border-radius:6px;padding:8px 10px;line-height:1.55}
+.diff .add{color:#4d5f37;background:rgba(155,176,110,.18);display:block;padding:0 4px;border-radius:3px}
+.diff .del{color:#8d3322;background:rgba(217,138,110,.18);display:block;padding:0 4px;border-radius:3px;text-decoration:line-through}
+.diff .c{color:var(--ink-3)}
+
+/* parallel lanes */
+.lanes{display:grid;grid-template-columns:1fr 1fr;gap:6px}
+.lane{background:var(--card-2);border:1px solid var(--line);border-radius:6px;padding:8px 10px;font-size:11.5px}
+.lane .h{font-family:var(--mono);font-size:10px;color:var(--ink-3);letter-spacing:.08em;text-transform:uppercase;margin-bottom:4px}
+
+@media (max-width:980px){
+  .opt-3,.opt-4{grid-template-columns:1fr 1fr}
+}
+@media (max-width:640px){
+  .opt-3,.opt-4{grid-template-columns:1fr}
+}
+</style>
+</head>
+<body>
+<div class="page">
+
+  <div class="kicker" style="color:var(--clay)">post-E3 · 2026-05-26</div>
+  <h1>Two decisions before continuing</h1>
+  <p class="lead">Smoke test passed. The system works end-to-end. Two open questions: <strong>(1)</strong> is the prompt calibrated the way you want, and <strong>(2)</strong> which gate is next. Pick by name below.</p>
+
+  <!-- status strip -->
+  <div class="strip">
+    <div>
+      <div class="kicker">progress</div>
+      <div style="display:flex;align-items:baseline;gap:10px;margin-top:2px">
+        <strong style="font-family:var(--serif);font-size:30px;color:var(--olive);line-height:.9">14</strong>
+        <span style="font-size:13.5px;color:var(--ink-2)">of 19 tasks done · 5 left (TASK-012, 014, 015, 016, 017)</span>
+      </div>
+      <div class="bar-track"><div class="bar-fill" style="width:74%"></div></div>
+    </div>
+    <div style="text-align:right">
+      <div class="kicker">live state</div>
+      <div class="mono small"><span style="color:var(--olive);font-weight:700">●</span> worker dev :8787</div>
+      <div class="mono small"><span style="color:var(--ink-4);font-weight:700">○</span> web dev not running</div>
+      <div class="mono small"><span style="color:var(--ink-4);font-weight:700">○</span> wrangler not logged in</div>
+    </div>
+  </div>
+
+  <!-- ============= DECISION 1: PROMPT TUNING ============= -->
+  <section class="section">
+    <div class="sec-no">DECISION 1 · prompt calibration</div>
+    <h2>The moderate case came back "weak" — is that what you want?</h2>
+    <p class="small muted">Smoke pair 2: <em>Frontend dev (2 yr, Comm Design degree, beginner Node.js)</em> × <em>Full-stack JD that says "3+ yr, solid CS fundamentals, not bootcamp-to-prod"</em>. Model returned <span class="mono"><strong style="color:var(--red)">score 45 → weak</strong></span> because the JD has multiple hard filters the resume misses. Three ways to handle this:</p>
+
+    <div class="opt-3" style="margin-top:14px">
+
+      <!-- Option 1A — Keep -->
+      <div class="opt pick">
+        <div class="hd">
+          <span class="badge rec">recommended</span>
+          <span class="id">1A</span>
+        </div>
+        <div class="ttl">Keep as-is</div>
+        <div class="desc">No prompt change. The model is following <code>spec §03</code> — "be honest, do not inflate scores". The JD's hard filters genuinely reject this resume.</div>
+
+        <h3 style="font-size:12px;color:var(--ink-3);margin-top:8px">smoke results · today</h3>
+        <div class="mini">
+          <div class="row"><span>STRONG case</span><span class="strong">92 · strong ✓</span></div>
+          <div class="row"><span>MODERATE case</span><span class="weak">45 · weak</span></div>
+          <div class="row"><span>WEAK case</span><span class="weak">0 · weak ✓</span></div>
+        </div>
+
+        <div class="meta"><span class="tag">0 min</span><span class="tag">0 risk</span></div>
+        <div class="why"><strong>Pick this if</strong> you want recruiter-grade honesty. Real candidates who fail hard filters of a JD really are weak fits — surfacing that is the product.</div>
+      </div>
+
+      <!-- Option 1B — Soften -->
+      <div class="opt">
+        <div class="hd">
+          <span class="badge user">prompt edit</span>
+          <span class="id">1B</span>
+        </div>
+        <div class="ttl">Soften — partial credit</div>
+        <div class="desc">Add one rule to <code>worker/src/prompt.ts</code> SYSTEM_PROMPT. Then re-run smoke. <span class="muted">2 lines change.</span></div>
+
+        <h3 style="font-size:12px;color:var(--ink-3);margin-top:8px">edit · diff preview</h3>
+        <div class="diff"><span class="c"># in SYSTEM_PROMPT, after "Be honest..."</span>
+<span class="add">+ When the resume has clear partial overlap with</span>
+<span class="add">+ JD requirements (e.g. correct stack but short</span>
+<span class="add">+ on years), award partial credit per dimension</span>
+<span class="add">+ rather than zero — moderate is a real verdict.</span></div>
+
+        <h3 style="font-size:12px;color:var(--ink-3);margin-top:8px">predicted smoke result</h3>
+        <div class="mini">
+          <div class="row"><span>STRONG case</span><span class="strong">~90 · strong</span></div>
+          <div class="row"><span>MODERATE case</span><span class="mod">~58 · moderate ✓</span></div>
+          <div class="row"><span>WEAK case</span><span class="weak">~5 · weak ✓</span></div>
+        </div>
+
+        <div class="meta"><span class="tag">~10 min</span><span class="tag">3 retries</span></div>
+        <div class="why"><strong>Pick this if</strong> in production you expect more "partial fit" candidates than "perfect" or "no chance" — and want the gauge to land in the moderate band more often.</div>
+      </div>
+
+      <!-- Option 1C — Pick new case -->
+      <div class="opt">
+        <div class="hd">
+          <span class="badge fast">test only</span>
+          <span class="id">1C</span>
+        </div>
+        <div class="ttl">Don't touch prompt — pick a different test case</div>
+        <div class="desc">The current "moderate" test pair has too many hard misses. Replace it with one that overlaps more, then re-run.</div>
+
+        <h3 style="font-size:12px;color:var(--ink-3);margin-top:8px">new pair · sketch</h3>
+        <div class="lanes">
+          <div class="lane">
+            <div class="h">resume</div>
+            Full-stack dev<br>3 yr · React + Node + Postgres<br>B.Sc. CS · 1 SaaS shipped
+          </div>
+          <div class="lane">
+            <div class="h">JD</div>
+            Senior full-stack<br>5+ yr · same stack<br>+ team leadership
+          </div>
+        </div>
+
+        <h3 style="font-size:12px;color:var(--ink-3);margin-top:8px">predicted result</h3>
+        <div class="mini">
+          <div class="row"><span>this new pair</span><span class="mod">~62 · moderate ✓</span></div>
+        </div>
+
+        <div class="meta"><span class="tag">~5 min</span><span class="tag">0 risk</span></div>
+        <div class="why"><strong>Pick this if</strong> you trust the prompt but think the test case was the unfair part — re-prove moderate works on a fairer case, leave prompt untouched.</div>
+      </div>
+
+    </div>
+  </section>
+
+  <!-- ============= DECISION 2: NEXT GATE ============= -->
+  <section class="section">
+    <div class="sec-no">DECISION 2 · next gate</div>
+    <h2>What do we ship next?</h2>
+    <p class="small muted">5 tasks remain. They split cleanly: TASK-012 (manual QA, can do now) versus TASK-014–017 (deploy chain, blocked on your <code>wrangler login</code>). Pick the path.</p>
+
+    <div class="opt-4" style="margin-top:14px">
+
+      <!-- Option 2A — Manual UI QA -->
+      <div class="opt">
+        <div class="hd">
+          <span class="badge fast">no login</span>
+          <span class="id">2A</span>
+        </div>
+        <div class="ttl">TASK-012 · manual UI state QA</div>
+        <div class="desc">Start <code>web/ npm run dev</code>, drive it via Chrome MCP, verify all 5 UI states render correctly.</div>
+
+        <h3 style="font-size:12px;color:var(--ink-3);margin-top:8px">5 states to verify</h3>
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:5px">
+          <div class="screen idle"><div class="label">idle</div><div class="body">empty form<br>drop pdf · paste jd</div></div>
+          <div class="screen loading"><div class="label">loading</div><div class="body">⏳ Analyzing…</div></div>
+          <div class="screen done"><div class="label">done</div><div class="body">▓▓▓ 92 · strong</div></div>
+          <div class="screen error"><div class="label">error</div><div class="body">⚠ try again</div></div>
+        </div>
+        <div class="screen rate" style="height:auto;margin-top:5px;padding:6px"><div class="label">rateLimited</div><div class="body" style="min-height:32px">slow down · 429</div></div>
+
+        <div class="meta"><span class="tag">~15 min</span><span class="tag">no user input</span></div>
+        <div class="why"><strong>+1 task done</strong> · prepares for the deploy smoke later</div>
+      </div>
+
+      <!-- Option 2B — Deploy -->
+      <div class="opt warn">
+        <div class="hd">
+          <span class="badge user">needs you</span>
+          <span class="id">2B</span>
+        </div>
+        <div class="ttl">E4–E6 · deploy</div>
+        <div class="desc">Worker → Pages → lock down. Closes 4 tasks (014, 015, 016, 017).</div>
+
+        <h3 style="font-size:12px;color:var(--ink-3);margin-top:8px">what happens</h3>
+        <div class="term">
+          <div class="top"><span>your terminal</span><span style="color:#C8623E">interactive</span></div>
+<pre><span class="c">$</span> cd worker
+<span class="c">$</span> npx wrangler login   <span class="c"># opens browser</span>
+<span class="c">$</span> npx wrangler secret put GEMINI_API_KEY
+<span class="hi">> [paste key]</span>
+<span class="c">$</span> npm run deploy
+
+<span class="s">✓ https://fit-analyzer-worker.<sub>.workers.dev</span></pre>
+        </div>
+
+        <h3 style="font-size:12px;color:var(--ink-3);margin-top:8px">then I do</h3>
+        <div class="browser">
+          <div class="url">https://fit-analyzer.pages.dev</div>
+          <div class="body" style="text-align:center"><strong>live URL</strong><br><span class="small muted">Pages deploy · lock CORS · restrict key · README</span></div>
+        </div>
+
+        <div class="meta"><span class="tag">~10 min</span><span class="tag">needs login</span></div>
+        <div class="why"><strong>Ships the product.</strong> 4 tasks done. Public URL.</div>
+      </div>
+
+      <!-- Option 2C — Parallel -->
+      <div class="opt">
+        <div class="hd">
+          <span class="badge fast">parallel</span>
+          <span class="id">2C</span>
+        </div>
+        <div class="ttl">Both in parallel</div>
+        <div class="desc">I run TASK-012 + draft README (TASK-017) while you do <code>wrangler login</code>. Converge on deploy when login is ready.</div>
+
+        <h3 style="font-size:12px;color:var(--ink-3);margin-top:8px">lanes</h3>
+        <div class="lanes">
+          <div class="lane">
+            <div class="h">me · agent</div>
+            • spin up web dev<br>
+            • drive 5 UI states (Chrome MCP)<br>
+            • draft README.md<br>
+            <span class="muted">⏱ ~15 min</span>
+          </div>
+          <div class="lane">
+            <div class="h">you · terminal</div>
+            • <code>wrangler login</code><br>
+            • when done, say <strong>"logged in"</strong><br>
+            <span class="muted">⏱ ~3 min</span>
+          </div>
+        </div>
+
+        <h3 style="font-size:12px;color:var(--ink-3);margin-top:8px">then converge</h3>
+        <div class="mini">
+          <div class="row"><span>both lanes meet</span><span class="strong">→ deploy E4–E6</span></div>
+        </div>
+
+        <div class="meta"><span class="tag">~15 min total</span><span class="tag">no waste</span></div>
+        <div class="why"><strong>Fastest to "all 19 done"</strong> · no idle time on either side</div>
+      </div>
+
+      <!-- Option 2D — Stop -->
+      <div class="opt">
+        <div class="hd">
+          <span class="badge end">end here</span>
+          <span class="id">2D</span>
+        </div>
+        <div class="ttl">Stop and review</div>
+        <div class="desc">Kill worker dev server, archive session, write <code>session-summary.html</code> showing 14/19 done. Deploy in a future session.</div>
+
+        <h3 style="font-size:12px;color:var(--ink-3);margin-top:8px">what gets archived</h3>
+        <div class="mini">
+          <div class="row"><span>done</span><span class="strong">14 tasks</span></div>
+          <div class="row"><span>verified live</span><span class="strong">worker + Gemini</span></div>
+          <div class="row"><span>pending</span><span class="weak">5 (deploy chain)</span></div>
+        </div>
+
+        <h3 style="font-size:12px;color:var(--ink-3);margin-top:8px">resumable</h3>
+        <div class="diff"><span class="c"># next session, just say:</span>
+<span class="add">resume</span></div>
+
+        <div class="meta"><span class="tag">~5 min</span><span class="tag">save state</span></div>
+        <div class="why"><strong>Pick this if</strong> you don't have time for the deploy chain right now · all state preserved</div>
+      </div>
+
+    </div>
+  </section>
+
+  <!-- footnote -->
+  <p class="small muted" style="margin-top:36px;text-align:center">
+    Decisions artifact · 2026-05-26 · linked from <code>todos.html</code> · pick by writing <strong>"1A + 2C"</strong> (etc.) in chat
+  </p>
+
+</div>
+</body>
+</html>

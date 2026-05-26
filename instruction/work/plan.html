@@ -125,12 +125,14 @@ ul{padding-left:18px;margin:8px 0} li{margin:4px 0}
     <a href="#tests">05 &nbsp;Test harness</a>
     <a href="#risks">06 &nbsp;Risks</a>
     <a href="#tasks">07 &nbsp;Task summary</a>
+    <div class="lbl" style="margin-top:14px;color:var(--clay)">AMENDMENT</div>
+    <a href="#exec">08 &nbsp;Execution phase</a>
   </nav>
 
   <!-- ============ BODY ============ -->
   <div>
   <div class="window">
-    <div class="bar"><span class="dots"><i></i><i></i><i></i></span><span class="title">plan.html &middot; fit-analyzer &middot; 2026-05-26</span></div>
+    <div class="bar"><span class="dots"><i></i><i></i><i></i></span><span class="title">plan.html &middot; fit-analyzer &middot; 2026-05-26 &middot; <span style="color:var(--clay)">+ §08 amendment</span></span></div>
     <div class="body">
 
     <!-- ============ 00 MISSION ============ -->
@@ -639,8 +641,338 @@ TASK-012 → 013 → 014 → 015 → 016 → 017         <span class="c"># Strea
       </div>
     </section>
 
+    <!-- ============ 08 EXECUTION PHASE (amendment · hero-first) ============ -->
+    <section class="section" id="exec" style="border-top:3px double var(--clay-line)">
+      <div class="sec-no" style="color:var(--clay);margin-bottom:12px">§ 08 &middot; AMENDMENT &middot; 2026-05-26</div>
+
+      <!-- ============== HERO: read once, understand at a glance ============== -->
+      <div style="background:linear-gradient(180deg,var(--card) 0%,var(--card-2) 100%);border:1.5px solid var(--clay-line);border-radius:var(--r);padding:30px 32px;box-shadow:var(--shadow);position:relative;overflow:hidden">
+        <div style="position:absolute;top:-40px;right:-40px;width:240px;height:240px;background:radial-gradient(circle,var(--clay-soft) 0%,transparent 65%);pointer-events:none;z-index:0"></div>
+
+        <div style="position:relative;z-index:1">
+          <h2 style="font-size:30px;line-height:1.08;margin:0">Scaffolded code <span style="color:var(--ink-3);font-weight:400">&rarr;</span> <span style="color:var(--clay)">live URL</span></h2>
+          <p style="font-size:15.5px;color:var(--ink-2);margin-top:8px"><strong>6 gates.</strong> <strong>1 thing</strong> from you. The rest is mechanical.</p>
+
+          <!-- TWO-COL: status box · SVG timeline -->
+          <div style="display:grid;grid-template-columns:230px 1fr;gap:24px;margin-top:24px;align-items:center">
+            <!-- LEFT: status -->
+            <div style="background:var(--card);border:1px solid var(--line);border-radius:var(--r-s);padding:16px 18px;box-shadow:var(--shadow-s)">
+              <div class="kicker" style="margin-bottom:12px">right now</div>
+              <div style="display:flex;align-items:baseline;gap:10px;margin-bottom:10px">
+                <strong style="font-family:var(--serif);font-size:36px;color:var(--olive);line-height:.9">30</strong>
+                <span style="font-size:12.5px;color:var(--ink-2);line-height:1.3">files<br>on disk</span>
+              </div>
+              <div style="display:flex;align-items:baseline;gap:10px">
+                <strong style="font-family:var(--serif);font-size:36px;color:var(--red);line-height:.9">0</strong>
+                <span style="font-size:12.5px;color:var(--ink-2);line-height:1.3">of 19 tasks<br>verified</span>
+              </div>
+              <div style="margin-top:14px;padding-top:12px;border-top:1px dashed var(--line)">
+                <div class="kicker" style="font-size:10px;margin-bottom:3px">stuck at</div>
+                <div style="font-family:var(--mono);font-size:12.5px;color:var(--clay);font-weight:700">gate E3 · needs key</div>
+              </div>
+            </div>
+
+            <!-- RIGHT: SVG TIMELINE -->
+            <div>
+              <svg viewBox="0 0 700 150" xmlns="http://www.w3.org/2000/svg" style="width:100%;height:auto;display:block" font-family="SF Mono, ui-monospace, monospace">
+                <!-- baseline -->
+                <line x1="50" y1="68" x2="650" y2="68" stroke="#E2DCCC" stroke-width="3"/>
+
+                <!-- E1 install (olive · parallel) -->
+                <circle cx="50" cy="68" r="22" fill="#FBF9F2" stroke="#6F864F" stroke-width="2"/>
+                <text x="50" y="73" text-anchor="middle" font-size="13" font-weight="700" fill="#6F864F">E1</text>
+                <text x="50" y="113" text-anchor="middle" font-size="11.5" fill="#1B1A17" font-weight="600">install</text>
+                <text x="50" y="128" text-anchor="middle" font-size="9.5" fill="#8B8678">parallel</text>
+
+                <!-- E2 verify (sky · parallel) -->
+                <circle cx="170" cy="68" r="22" fill="#FBF9F2" stroke="#5E80A6" stroke-width="2"/>
+                <text x="170" y="73" text-anchor="middle" font-size="13" font-weight="700" fill="#5E80A6">E2</text>
+                <text x="170" y="113" text-anchor="middle" font-size="11.5" fill="#1B1A17" font-weight="600">verify</text>
+                <text x="170" y="128" text-anchor="middle" font-size="9.5" fill="#8B8678">parallel</text>
+
+                <!-- E3 SMOKE (clay · HIGHLIGHTED · the one blocker) -->
+                <circle cx="295" cy="68" r="38" fill="none" stroke="#C8623E" stroke-width="1.5" stroke-dasharray="3 3" opacity=".55"/>
+                <circle cx="295" cy="68" r="30" fill="#F2E0D6" stroke="#C8623E" stroke-width="3.5"/>
+                <text x="295" y="74" text-anchor="middle" font-size="15" font-weight="700" fill="#C8623E">E3</text>
+                <text x="295" y="22" text-anchor="middle" font-size="11" fill="#C8623E" font-weight="700" letter-spacing="1.4">YOU ARE HERE</text>
+                <text x="295" y="115" text-anchor="middle" font-size="12" fill="#9a4a2c" font-weight="700">smoke 🔑</text>
+                <text x="295" y="130" text-anchor="middle" font-size="9.5" fill="#9a4a2c">needs your key</text>
+
+                <!-- E4 deploy worker -->
+                <circle cx="420" cy="68" r="22" fill="#FBF9F2" stroke="#6F864F" stroke-width="2"/>
+                <text x="420" y="73" text-anchor="middle" font-size="13" font-weight="700" fill="#6F864F">E4</text>
+                <text x="420" y="113" text-anchor="middle" font-size="11.5" fill="#1B1A17" font-weight="600">deploy worker</text>
+                <text x="420" y="128" text-anchor="middle" font-size="9.5" fill="#8B8678">serial</text>
+
+                <!-- E5 deploy pages -->
+                <circle cx="540" cy="68" r="22" fill="#FBF9F2" stroke="#6F864F" stroke-width="2"/>
+                <text x="540" y="73" text-anchor="middle" font-size="13" font-weight="700" fill="#6F864F">E5</text>
+                <text x="540" y="113" text-anchor="middle" font-size="11.5" fill="#1B1A17" font-weight="600">deploy pages</text>
+                <text x="540" y="128" text-anchor="middle" font-size="9.5" fill="#8B8678">serial</text>
+
+                <!-- E6 harden -->
+                <circle cx="650" cy="68" r="22" fill="#F1E6CC" stroke="#B98828" stroke-width="2"/>
+                <text x="650" y="73" text-anchor="middle" font-size="13" font-weight="700" fill="#B98828">E6</text>
+                <text x="650" y="113" text-anchor="middle" font-size="11.5" fill="#1B1A17" font-weight="600">harden</text>
+                <text x="650" y="128" text-anchor="middle" font-size="9.5" fill="#8B8678">+ README</text>
+              </svg>
+            </div>
+          </div>
+
+          <!-- TERMINAL CALL-OUT: the one thing user supplies -->
+          <div style="margin-top:24px;background:var(--dark);border-radius:var(--r-s);overflow:hidden;border:1px solid var(--dark-2)">
+            <div style="background:var(--dark-2);padding:8px 14px;display:flex;justify-content:space-between;align-items:center;color:var(--dark-dim);font-family:var(--mono);font-size:11.5px;border-bottom:1px solid #000">
+              <span>terminal · the one thing you need to do</span>
+              <span style="color:#C8623E;font-weight:600">🔑 unblocks E3</span>
+            </div>
+<pre style="padding:14px 18px;color:var(--dark-ink);font-family:var(--mono);font-size:13px;line-height:1.7;margin:0;overflow-x:auto"><span style="color:#8D887B"># option A · paste your key right here in chat, I'll write the file</span>
+<span style="color:#9BB06E">&gt;</span> AIzaSy_your_key_here
+
+<span style="color:#8D887B"># option B · write it yourself</span>
+<span style="color:#9BB06E">$</span> echo 'GEMINI_API_KEY="AIzaSy..."' &gt; worker/.dev.vars
+
+<span style="color:#8D887B"># get a free key:</span> <span style="color:#D9A05B">https://aistudio.google.com/apikey</span></pre>
+          </div>
+
+          <!-- APPROVE BAR -->
+          <div class="approve" style="margin-top:24px;display:flex;gap:18px;align-items:center;justify-content:space-between;flex-wrap:wrap;padding-top:22px;border-top:1.5px solid var(--clay-line)">
+            <div style="flex:1;min-width:240px">
+              <div class="kicker" style="color:var(--clay);margin-bottom:4px">approval required</div>
+              <strong style="font-family:var(--serif);font-size:20px;display:block">Approve §08 &amp; start gate E1?</strong>
+              <div class="small muted" style="margin-top:3px">TASK-018/019 added · agents go parallel on E1+E2 · pause at E3 for your key</div>
+            </div>
+            <div class="row" style="gap:10px;flex:none">
+              <button class="btn ghost" disabled style="opacity:.55;cursor:default">Discuss one gate</button>
+              <button class="btn primary" disabled style="opacity:.95;cursor:default;font-size:15px;padding:11px 22px">Approve &amp; proceed</button>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- ============== FOLDED DETAILS · everything else, out of the way ============== -->
+      <p class="small muted" style="margin-top:24px;text-align:center"><span class="kicker">DETAILS · click to expand</span></p>
+
+      <details class="fold" style="margin-top:8px">
+        <summary>Full gate-by-gate flow · annotated SVG with parallel lanes</summary>
+        <div class="inner">
+          <p class="muted" style="margin-bottom:10px">Two boxes in the same column run in parallel. Only <strong>E3</strong> needs a real human in the loop — once <code>GEMINI_API_KEY</code> is in <code>worker/.dev.vars</code>, E4–E6 are mechanical.</p>
+          <div class="diagram">
+        <svg viewBox="0 0 960 280" xmlns="http://www.w3.org/2000/svg" font-family="SF Mono, ui-monospace, monospace">
+          <defs>
+            <marker id="ex-olive" markerWidth="9" markerHeight="9" refX="7" refY="4.5" orient="auto">
+              <path d="M0,0 L9,4.5 L0,9 Z" fill="#6F864F"/>
+            </marker>
+            <marker id="ex-clay" markerWidth="9" markerHeight="9" refX="7" refY="4.5" orient="auto">
+              <path d="M0,0 L9,4.5 L0,9 Z" fill="#C8623E"/>
+            </marker>
+            <marker id="ex-sky" markerWidth="9" markerHeight="9" refX="7" refY="4.5" orient="auto">
+              <path d="M0,0 L9,4.5 L0,9 Z" fill="#5E80A6"/>
+            </marker>
+          </defs>
+
+          <!-- E1 lane labels -->
+          <text x="14" y="48" fill="#8B8678" font-size="10" letter-spacing="1.2" font-weight="700">E1 · INSTALL</text>
+          <text x="180" y="48" fill="#8B8678" font-size="10" letter-spacing="1.2" font-weight="700">E2 · VERIFY</text>
+          <text x="365" y="48" fill="#C8623E" font-size="10" letter-spacing="1.2" font-weight="700">E3 · SMOKE · NEEDS KEY</text>
+          <text x="585" y="48" fill="#8B8678" font-size="10" letter-spacing="1.2" font-weight="700">E4 · WORKER</text>
+          <text x="720" y="48" fill="#8B8678" font-size="10" letter-spacing="1.2" font-weight="700">E5 · PAGES</text>
+          <text x="845" y="48" fill="#8B8678" font-size="10" letter-spacing="1.2" font-weight="700">E6 · HARDEN</text>
+
+          <!-- E1a install worker (top lane) -->
+          <rect x="14" y="64" width="150" height="60" rx="8" fill="#FBF9F2" stroke="#6F864F" stroke-width="1.4"/>
+          <text x="26" y="84" fill="#1B1A17" font-size="12" font-weight="600">npm install</text>
+          <text x="26" y="100" fill="#8B8678" font-size="10.5">in worker/</text>
+          <text x="26" y="115" fill="#6F864F" font-size="9.5" font-weight="600">TASK-018a</text>
+
+          <!-- E1b install web (bottom lane) -->
+          <rect x="14" y="164" width="150" height="60" rx="8" fill="#FBF9F2" stroke="#6F864F" stroke-width="1.4"/>
+          <text x="26" y="184" fill="#1B1A17" font-size="12" font-weight="600">npm install</text>
+          <text x="26" y="200" fill="#8B8678" font-size="10.5">in web/</text>
+          <text x="26" y="215" fill="#6F864F" font-size="9.5" font-weight="600">TASK-019a</text>
+
+          <!-- E2a typecheck+test worker -->
+          <rect x="190" y="64" width="160" height="60" rx="8" fill="#FBF9F2" stroke="#5E80A6" stroke-width="1.4"/>
+          <text x="202" y="83" fill="#1B1A17" font-size="11.5" font-weight="600">typecheck + vitest</text>
+          <text x="202" y="98" fill="#8B8678" font-size="10">4 specs · miniflare</text>
+          <text x="202" y="115" fill="#5E80A6" font-size="9.5" font-weight="600">closes TASK-001..004</text>
+
+          <!-- E2b typecheck web + write E2E -->
+          <rect x="190" y="164" width="160" height="60" rx="8" fill="#FBF9F2" stroke="#5E80A6" stroke-width="1.4"/>
+          <text x="202" y="183" fill="#1B1A17" font-size="11.5" font-weight="600">typecheck + E2E spec</text>
+          <text x="202" y="198" fill="#8B8678" font-size="10">write happy.spec.ts · TASK-013</text>
+          <text x="202" y="215" fill="#5E80A6" font-size="9.5" font-weight="600">closes TASK-006..011, 013</text>
+
+          <!-- E3 smoke (clay = needs user) -->
+          <rect x="376" y="114" width="180" height="60" rx="8" fill="#F2E0D6" stroke="#C8623E" stroke-width="1.8"/>
+          <text x="388" y="134" fill="#9a4a2c" font-size="11.5" font-weight="700">curl smoke + prompt tune</text>
+          <text x="388" y="150" fill="#9a4a2c" font-size="10">3 resume/JD pairs · TASK-005</text>
+          <text x="388" y="166" fill="#C8623E" font-size="9.5" font-weight="700">⚠ needs GEMINI_API_KEY</text>
+
+          <!-- E4 deploy worker -->
+          <rect x="582" y="114" width="124" height="60" rx="8" fill="#FBF9F2" stroke="#6F864F" stroke-width="1.4"/>
+          <text x="594" y="134" fill="#1B1A17" font-size="11.5" font-weight="600">wrangler</text>
+          <text x="594" y="148" fill="#1B1A17" font-size="11.5" font-weight="600">deploy</text>
+          <text x="594" y="165" fill="#6F864F" font-size="9.5" font-weight="600">TASK-014</text>
+
+          <!-- E5 deploy pages -->
+          <rect x="724" y="114" width="110" height="60" rx="8" fill="#FBF9F2" stroke="#6F864F" stroke-width="1.4"/>
+          <text x="736" y="134" fill="#1B1A17" font-size="11.5" font-weight="600">pages deploy</text>
+          <text x="736" y="150" fill="#8B8678" font-size="10">./dist</text>
+          <text x="736" y="165" fill="#6F864F" font-size="9.5" font-weight="600">TASK-015</text>
+
+          <!-- E6 harden -->
+          <rect x="850" y="114" width="100" height="60" rx="8" fill="#F1E6CC" stroke="#B98828" stroke-width="1.4"/>
+          <text x="862" y="134" fill="#1B1A17" font-size="11.5" font-weight="600">lock down</text>
+          <text x="862" y="150" fill="#8B8678" font-size="10">+ README</text>
+          <text x="862" y="165" fill="#B98828" font-size="9.5" font-weight="600">TASK-016, 017</text>
+
+          <!-- Arrows: E1 → E2 (parallel lanes) -->
+          <line x1="164" y1="94"  x2="187" y2="94"  stroke="#6F864F" stroke-width="1.6" marker-end="url(#ex-olive)"/>
+          <line x1="164" y1="194" x2="187" y2="194" stroke="#6F864F" stroke-width="1.6" marker-end="url(#ex-olive)"/>
+
+          <!-- Arrows: E2a + E2b → E3 (converge) -->
+          <line x1="350" y1="94"  x2="376" y2="130" stroke="#5E80A6" stroke-width="1.6" marker-end="url(#ex-clay)"/>
+          <line x1="350" y1="194" x2="376" y2="158" stroke="#5E80A6" stroke-width="1.6" marker-end="url(#ex-clay)"/>
+
+          <!-- Arrows: E3 → E4 → E5 → E6 -->
+          <line x1="556" y1="144" x2="579" y2="144" stroke="#C8623E" stroke-width="1.6" marker-end="url(#ex-olive)"/>
+          <line x1="706" y1="144" x2="721" y2="144" stroke="#6F864F" stroke-width="1.6" marker-end="url(#ex-olive)"/>
+          <line x1="834" y1="144" x2="847" y2="144" stroke="#6F864F" stroke-width="1.6" marker-end="url(#ex-olive)"/>
+
+          <!-- legend strip -->
+          <text x="14" y="262" fill="#8B8678" font-size="10">━━ olive: agent runs · ━━ sky: verify · ━━ clay: blocks on user input</text>
+        </svg>
+          </div>
+        </div>
+      </details>
+
+      <details class="fold">
+        <summary>Commands per gate · what each agent will run</summary>
+        <div class="inner">
+          <table>
+            <thead><tr><th style="width:7%">Gate</th><th>Command (run in agent shell)</th><th>Closes</th><th style="width:18%">Needs</th></tr></thead>
+            <tbody>
+              <tr>
+                <td><strong>E1</strong></td>
+                <td><code>cd worker && npm install</code> · in parallel: <code>cd web && npm install</code></td>
+                <td>TASK-018a, 019a</td>
+                <td class="muted">network only</td>
+              </tr>
+              <tr>
+                <td><strong>E2</strong></td>
+                <td><code>cd worker && npm run typecheck && npm test</code> · in parallel: <code>cd web && npm run typecheck && npm run build</code> · also write <code>web/tests/happy.spec.ts</code></td>
+                <td>TASK-001..004, 006..011, 013, 018, 019</td>
+                <td class="muted">nothing</td>
+              </tr>
+              <tr style="background:var(--clay-soft)">
+                <td><strong style="color:var(--clay)">E3</strong></td>
+                <td><code>wrangler secret put GEMINI_API_KEY</code> (or write <code>worker/.dev.vars</code> locally) · then <code>npm run dev</code> + <code>curl</code> with 3 resume/JD pairs</td>
+                <td>TASK-005</td>
+                <td><strong style="color:var(--clay)">user supplies key</strong></td>
+              </tr>
+              <tr>
+                <td><strong>E4</strong></td>
+                <td><code>cd worker && npx wrangler secret put GEMINI_API_KEY && npm run deploy</code></td>
+                <td>TASK-014</td>
+                <td class="muted">CF login</td>
+              </tr>
+              <tr>
+                <td><strong>E5</strong></td>
+                <td>Set <code>VITE_API_BASE</code> in <code>web/.env</code> &rarr; <code>cd web && npm run build && npx wrangler pages deploy ./dist --project-name=fit-analyzer</code></td>
+                <td>TASK-015</td>
+                <td class="muted">E4 URL</td>
+              </tr>
+              <tr>
+                <td><strong>E6</strong></td>
+                <td><code>wrangler secret put ALLOW_ORIGIN</code> with Pages URL · restrict key in AI Studio · write <code>README.md</code> · live smoke desktop+mobile</td>
+                <td>TASK-016, 017</td>
+                <td class="muted">E5 URL</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </details>
+
+      <details class="fold">
+        <summary>What needs to be supplied by you (full detail · 2 items)</summary>
+        <div class="inner">
+          <div class="grid-2">
+            <div class="note warn" style="margin:0">
+              <span class="ic">1</span>
+              <div>
+                <strong>Gemini API key</strong> — needed at gate <strong>E3</strong>.
+                Get one free at <a href="https://aistudio.google.com/apikey">aistudio.google.com/apikey</a>.
+                Once you have it, either paste it in chat (I'll write <code>worker/.dev.vars</code>) or run <code>wrangler secret put GEMINI_API_KEY</code> yourself.
+              </div>
+            </div>
+            <div class="note warn" style="margin:0">
+              <span class="ic">2</span>
+              <div>
+                <strong>Cloudflare login</strong> — needed at gate <strong>E4</strong>.
+                <code>npx wrangler login</code> opens a browser — I can't do this for you in a non-interactive shell. Run it yourself when E4 is up, or say "skip deploy this session" and I'll stop at E3.
+              </div>
+            </div>
+          </div>
+        </div>
+      </details>
+
+      <details class="fold">
+        <summary>New tasks added on approval · TASK-018 &amp; TASK-019</summary>
+        <div class="inner">
+          <p class="small muted">These two were implicit in §03 but worth surfacing now that they are the literal next thing the team will execute. They become the prerequisites of every existing <em>impl</em> task.</p>
+          <table>
+            <thead><tr><th style="width:10%">ID</th><th>Name</th><th style="width:18%">Skills</th><th style="width:22%">Closes</th></tr></thead>
+            <tbody>
+              <tr>
+                <td><code>TASK-018</code></td>
+                <td>Verify worker scaffold — <code>npm install</code> &rarr; <code>npm run typecheck</code> &rarr; <code>npm test</code></td>
+                <td>env-sync</td>
+                <td>TASK-001..004 to <em>done</em></td>
+              </tr>
+              <tr>
+                <td><code>TASK-019</code></td>
+                <td>Verify web scaffold — <code>npm install</code> &rarr; <code>npm run typecheck</code> &rarr; <code>npm run build</code></td>
+                <td>env-sync</td>
+                <td>TASK-006..011 to <em>done</em></td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </details>
+
+      <details class="fold">
+        <summary>Right-now disk state · file counts &amp; blockers</summary>
+        <div class="inner">
+          <div class="grid-3">
+            <div class="stat good"><div class="l">Code files on disk</div><div class="n">~30</div></div>
+            <div class="stat bad"><div class="l"><code>node_modules</code></div><div class="n">0 / 2</div></div>
+            <div class="stat bad"><div class="l">Tests executed</div><div class="n">0 / 4</div></div>
+          </div>
+          <div class="note danger" style="margin-top:14px">
+            <span class="ic">!</span>
+            <div><strong>Three concrete blockers:</strong>
+              <code>worker/node_modules</code> missing ·
+              <code>web/node_modules</code> missing ·
+              <code>worker/.dev.vars</code> missing (needs <code>GEMINI_API_KEY</code>).
+              Until E1 and E3 resolve, no task can move from <em>impl</em> &rarr; <em>done</em>.
+            </div>
+          </div>
+        </div>
+      </details>
+
+      <details class="fold">
+        <summary>Definition of "verified scaffold"</summary>
+        <div class="inner">
+          <div class="note ok">
+            <span class="ic">&#10003;</span>
+            <div>Both folders install cleanly · both <code>typecheck</code>s pass · 4 vitest specs pass · 1 Playwright spec passes against mocked <code>/api/analyze</code>. After that, gates E3–E6 are mechanical and the spec §10 acceptance criteria are met.</div>
+          </div>
+        </div>
+      </details>
+    </section>
+
     <hr style="margin-top:34px">
-    <p class="small muted">Plan generated 2026-05-26 &middot; sources: <code>instruction/fit-analyzer-spec.html</code>, Cloudflare Workers docs (2026-05), Google AI Studio (2026-05), pdfjs-dist v5.7. Open <code>todos.html</code> to start work via <code>/workflow-work</code>.</p>
+    <p class="small muted">Plan generated 2026-05-26 &middot; amended 2026-05-26 (§08 execution phase) &middot; sources: <code>instruction/fit-analyzer-spec.html</code>, Cloudflare Workers docs (2026-05), Google AI Studio (2026-05), pdfjs-dist v5.7. Open <code>todos.html</code> to start work via <code>/workflow-work</code>.</p>
 
     </div>
   </div>

@@ -1,0 +1,362 @@
+<!doctype html>
+<html lang="th">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>ทางต่อไป · fit-analyzer</title>
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+:root{
+  --paper:#F4F1E8;--paper-2:#EDE9DC;--card:#FFFFFF;--card-2:#FBF9F2;
+  --chrome:#E9E4D6;--line:#E2DCCC;--line-2:#D4CCB8;
+  --ink:#1B1A17;--ink-2:#55514A;--ink-3:#8B8678;--ink-4:#A8A395;
+  --clay:#C8623E;--clay-soft:#F2E0D6;--clay-line:#E0A98E;
+  --olive:#6F864F;--olive-soft:#E4E8D8;--olive-line:#AEBE8E;
+  --sky:#5E80A6;--sky-soft:#DCE4ED;--gold:#B98828;--gold-soft:#F1E6CC;
+  --red:#B4452F;--red-soft:#F2DDD7;--oat:#E3DACC;
+  --dark:#1F1E1B;--dark-2:#2A2925;--dark-ink:#E9E5DA;--dark-dim:#8D887B;
+  --serif:'Iowan Old Style','Palatino Linotype',Palatino,Georgia,serif;
+  --sans:'Sukhumvit Set',-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,'Noto Sans Thai',Arial,sans-serif;
+  --mono:'SF Mono',ui-monospace,'JetBrains Mono',Menlo,Consolas,monospace;
+  --r:14px;--r-s:9px;
+  --shadow:0 1px 2px rgba(31,30,27,.05),0 14px 36px -14px rgba(31,30,27,.22);
+  --shadow-s:0 1px 2px rgba(31,30,27,.06),0 4px 14px -6px rgba(31,30,27,.14);
+  color-scheme:light;
+}
+html,body{background:var(--paper)}
+body{font-family:var(--sans);color:var(--ink);line-height:1.55;font-size:14.5px;-webkit-font-smoothing:antialiased;text-rendering:optimizeLegibility}
+.page{max-width:1280px;margin:0 auto;padding:32px 24px 90px}
+.kicker{font-family:var(--mono);font-size:11px;font-weight:600;letter-spacing:.16em;text-transform:uppercase;color:var(--ink-3)}
+h1{font-family:var(--serif);font-size:42px;font-weight:600;letter-spacing:-.02em;line-height:1.05}
+h2{font-family:var(--serif);font-size:24px;font-weight:600;letter-spacing:-.01em;margin:0}
+h3{font-family:var(--serif);font-size:16px;font-weight:600;margin:0 0 6px}
+.lead{font-size:16px;color:var(--ink-2);margin-top:10px;max-width:780px}
+code{font-family:var(--mono);font-size:.88em;background:var(--paper-2);padding:.1em .38em;border-radius:5px;color:var(--ink)}
+.mono{font-family:var(--mono)} .small{font-size:12.5px} .muted{color:var(--ink-3)}
+
+/* hero counter */
+.counter{display:flex;align-items:baseline;gap:14px;margin:22px 0 30px}
+.counter .big{font-family:var(--serif);font-size:80px;font-weight:600;color:var(--olive);line-height:.85;letter-spacing:-.04em}
+.counter .of{font-family:var(--serif);font-size:34px;color:var(--ink-3);font-weight:400}
+.counter .label{font-size:14px;color:var(--ink-2);margin-left:6px}
+.counter .label strong{color:var(--ink);font-weight:600}
+
+/* outcome grid */
+.outcome{display:grid;grid-template-columns:1.6fr 1fr;gap:22px}
+@media (max-width:900px){.outcome{grid-template-columns:1fr}}
+
+.path{background:var(--card);border:1.5px solid var(--line);border-radius:var(--r);
+  box-shadow:var(--shadow-s);overflow:hidden;display:flex;flex-direction:column;transition:.2s}
+.path:hover{transform:translateY(-2px);box-shadow:var(--shadow)}
+.path.hero{border-color:var(--clay);box-shadow:0 0 0 4px var(--clay-soft),var(--shadow)}
+.path .hd{padding:18px 22px 14px;background:linear-gradient(180deg,var(--card-2) 0%,var(--card) 100%);border-bottom:1px solid var(--line);position:relative}
+.path.hero .hd{background:linear-gradient(180deg,var(--clay-soft) 0%,var(--card) 100%);border-bottom-color:var(--clay-line)}
+.path .hd .star{position:absolute;top:14px;right:18px;font-family:var(--mono);font-size:11px;font-weight:700;color:var(--clay);letter-spacing:.1em;text-transform:uppercase;background:var(--card);border:1.5px solid var(--clay);border-radius:20px;padding:3px 10px}
+.path .row1{display:flex;align-items:baseline;gap:14px;margin-bottom:6px}
+.path .num{font-family:var(--serif);font-size:34px;font-weight:600;line-height:.9;letter-spacing:-.02em}
+.path .num.fast{color:var(--clay)} .path .num.save{color:var(--ink-3)}
+.path .tt{font-family:var(--serif);font-size:22px;font-weight:600;line-height:1.2}
+.path .body{padding:18px 22px;display:flex;flex-direction:column;gap:14px;flex:1}
+.path .ft{padding:14px 22px;background:var(--card-2);border-top:1px solid var(--line);font-size:13px;color:var(--ink-2)}
+
+/* stat strip */
+.stats{display:grid;grid-template-columns:repeat(3,1fr);gap:8px}
+.statbox{background:var(--card-2);border:1px solid var(--line);border-radius:var(--r-s);padding:10px 12px;text-align:center}
+.statbox .v{font-family:var(--serif);font-size:22px;font-weight:600;line-height:1;color:var(--ink)}
+.statbox .v.hero{color:var(--clay)} .statbox .v.olive{color:var(--olive)} .statbox .v.muted{color:var(--ink-3)}
+.statbox .l{font-family:var(--mono);font-size:10px;letter-spacing:.06em;text-transform:uppercase;color:var(--ink-3);margin-top:3px}
+
+/* lanes (parallel work) */
+.lanes{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+.lane{background:var(--card-2);border:1px solid var(--line);border-radius:var(--r-s);padding:11px 13px}
+.lane.me{border-left:3px solid var(--sky)}
+.lane.you{border-left:3px solid var(--clay)}
+.lane .h{font-family:var(--mono);font-size:10.5px;letter-spacing:.08em;text-transform:uppercase;margin-bottom:6px}
+.lane.me .h{color:var(--sky)} .lane.you .h{color:var(--clay)}
+.lane ul{padding-left:14px;margin:0}
+.lane li{font-size:13px;margin:3px 0;line-height:1.45}
+.lane .time{margin-top:6px;font-family:var(--mono);font-size:11px;color:var(--ink-3);padding-top:6px;border-top:1px dashed var(--line)}
+
+/* fit-analyzer mock app preview */
+.appmock{background:var(--card);border:1.5px solid var(--line-2);border-radius:var(--r-s);overflow:hidden;box-shadow:var(--shadow-s)}
+.appmock .browser{background:var(--chrome);padding:7px 11px;display:flex;align-items:center;gap:8px;border-bottom:1px solid var(--line)}
+.appmock .browser .dots{display:flex;gap:5px}
+.appmock .browser .dots i{width:9px;height:9px;border-radius:50%;background:#CFC8B6}
+.appmock .browser .url{flex:1;background:var(--card);border:1px solid var(--line);border-radius:5px;padding:3px 9px;font-family:var(--mono);font-size:10.5px;color:var(--ink-2);display:flex;align-items:center;gap:5px}
+.appmock .browser .url::before{content:"●";color:var(--olive);font-size:8px}
+.appmock .app{display:grid;grid-template-columns:1fr 1.3fr;background:var(--paper)}
+@media (max-width:520px){.appmock .app{grid-template-columns:1fr}}
+.appmock .left,.appmock .right{padding:14px;display:flex;flex-direction:column;gap:9px}
+.appmock .left{border-right:1px solid var(--line);background:var(--card-2)}
+@media (max-width:520px){.appmock .left{border-right:none;border-bottom:1px solid var(--line)}}
+.appmock h4{font-family:var(--serif);font-size:14px;font-weight:600;margin:0}
+.appmock .drop{border:1.5px dashed var(--line-2);border-radius:6px;padding:14px 10px;text-align:center;font-size:11.5px;color:var(--ink-3);background:var(--card);font-family:var(--mono)}
+.appmock .ta{background:var(--card);border:1px solid var(--line);border-radius:4px;padding:6px 8px;font-size:10.5px;color:var(--ink-3);min-height:38px;font-family:var(--mono);line-height:1.45}
+.appmock .btn{background:var(--clay);color:#fff;border-radius:5px;padding:7px 10px;text-align:center;font-size:12px;font-weight:600;letter-spacing:.04em}
+
+/* gauge */
+.gauge{display:flex;align-items:center;gap:12px;background:var(--card);border:1px solid var(--line);border-radius:6px;padding:10px 12px}
+.gauge svg{flex:none}
+.gauge .info{flex:1}
+.gauge .score{font-family:var(--serif);font-size:26px;font-weight:600;color:var(--olive);line-height:1}
+.gauge .verdict{font-family:var(--mono);font-size:11px;font-weight:700;letter-spacing:.1em;text-transform:uppercase;color:var(--olive);margin-top:2px}
+.gauge .case{font-size:11px;color:var(--ink-3);margin-top:3px}
+
+/* dim bars */
+.dimrow{display:flex;align-items:center;gap:8px;font-size:11.5px}
+.dimrow .name{font-family:var(--mono);font-size:10.5px;color:var(--ink-2);width:78px;flex:none}
+.dimrow .track{flex:1;height:7px;background:var(--oat);border-radius:4px;overflow:hidden;position:relative}
+.dimrow .fill{height:100%;background:var(--olive);border-radius:4px}
+.dimrow .val{font-family:var(--mono);font-size:10.5px;color:var(--olive);font-weight:700;width:24px;text-align:right;flex:none}
+
+/* findings */
+.find{font-size:11px;color:var(--ink-2);line-height:1.45;padding-left:14px;position:relative}
+.find::before{content:"";position:absolute;left:0;top:6px;width:8px;height:8px;border-radius:50%}
+.find.s::before{background:var(--olive)}
+.find.g::before{background:var(--gold)}
+
+/* terminal (compact) */
+.term{background:var(--dark);border-radius:var(--r-s);overflow:hidden;font-family:var(--mono);font-size:11.5px;line-height:1.6;border:1px solid var(--dark-2)}
+.term .top{background:var(--dark-2);padding:5px 11px;color:var(--dark-dim);font-size:10.5px;display:flex;justify-content:space-between;border-bottom:1px solid #000}
+.term pre{padding:10px 12px;color:var(--dark-ink);margin:0;white-space:pre-wrap;overflow-x:auto}
+.term .c{color:var(--dark-dim)} .term .s{color:#9BB06E} .term .hi{color:#E0A98E}
+
+/* doc snippet */
+.doc{background:var(--card-2);border:1px solid var(--line);border-radius:var(--r-s);padding:12px 14px}
+.doc h5{font-family:var(--serif);font-size:14px;font-weight:600;margin-bottom:6px}
+.doc ul{padding-left:18px}
+.doc li{font-size:12.5px;color:var(--ink-2);margin:2px 0}
+
+/* tag */
+.tag{font-family:var(--mono);font-size:10.5px;color:var(--ink-2);background:var(--card-2);
+  border:1px solid var(--line);border-radius:5px;padding:2px 7px;display:inline-block}
+.tag.warn{color:var(--clay);border-color:var(--clay-line)}
+.tag.olive{color:var(--olive);border-color:var(--olive-line)}
+
+/* response cue */
+.cue{margin-top:32px;background:var(--card);border:1.5px solid var(--clay);border-radius:var(--r);padding:18px 22px;
+  display:flex;align-items:center;justify-content:space-between;gap:18px;flex-wrap:wrap;box-shadow:var(--shadow-s)}
+.cue .ask{font-family:var(--serif);font-size:18px;font-weight:600}
+.cue .hint{font-family:var(--mono);font-size:12px;color:var(--ink-3);margin-top:4px}
+.cue .reply{font-family:var(--mono);font-size:14px;background:var(--paper-2);border:1.5px dashed var(--clay-line);border-radius:6px;padding:6px 14px;color:var(--clay);font-weight:700;letter-spacing:.05em}
+
+/* footnote */
+.foot{margin-top:24px;text-align:center;font-size:12.5px;color:var(--ink-3)}
+</style>
+</head>
+<body>
+<div class="page">
+
+  <!-- HEADER -->
+  <div class="kicker" style="color:var(--clay)">2026-05-26 · 13:05</div>
+  <h1>เหลือ <em style="color:var(--clay);font-style:normal">5 งานสุดท้าย</em><br>ก่อน fit-analyzer พร้อมใช้จริง</h1>
+  <p class="lead">smoke ปิดแล้ว · prompt calibrate ตรงใจพี่แล้ว · ที่เหลือคือเลือกว่า "<strong>ปิดงานวันนี้</strong>" หรือ "<strong>หยุดเซฟ</strong>" — 2 ทางเท่านั้น แต่ 2 ทางนี้ผลปลายทางต่างกันแบบเห็นๆ</p>
+
+  <!-- COUNTER -->
+  <div class="counter">
+    <span class="big">14</span>
+    <span class="of">/ 19</span>
+    <span class="label">tasks done · เหลือ <strong>5</strong> · ทั้งหมดอยู่หลัง <strong>wrangler login</strong></span>
+  </div>
+
+  <!-- TWO PATHS -->
+  <div class="outcome">
+
+    <!-- PATH 1: ลุยปิดวันนี้ -->
+    <div class="path hero">
+      <div class="hd">
+        <span class="star">★ แนะนำ</span>
+        <div class="row1"><span class="num fast">2C</span><span class="tt">ลุยปิด session ตอนนี้</span></div>
+        <div class="muted small">~15 นาทีรวม · ไม่มี idle time · ได้ public URL วันนี้</div>
+      </div>
+
+      <div class="body">
+
+        <!-- stats -->
+        <div class="stats">
+          <div class="statbox"><div class="v hero">15</div><div class="l">นาที</div></div>
+          <div class="statbox"><div class="v olive">19/19</div><div class="l">tasks</div></div>
+          <div class="statbox"><div class="v olive">live</div><div class="l">url</div></div>
+        </div>
+
+        <!-- two lanes parallel work -->
+        <div>
+          <h3>ทำคู่ขนาน 2 lane</h3>
+          <div class="lanes">
+            <div class="lane me">
+              <div class="h">🤖 ผม</div>
+              <ul>
+                <li>เปิด web dev :5173</li>
+                <li>ไล่ 5 UI states ผ่าน Chrome MCP</li>
+                <li>screenshot บันทึก</li>
+                <li>ร่าง README.md</li>
+              </ul>
+              <div class="time">⏱ ~12 นาที</div>
+            </div>
+            <div class="lane you">
+              <div class="h">👤 พี่</div>
+              <ul>
+                <li><code>cd worker</code></li>
+                <li><code>npx wrangler login</code></li>
+                <li>browser เปิดให้กด Allow</li>
+                <li>กลับมาบอกผม "logged in"</li>
+              </ul>
+              <div class="time">⏱ ~3 นาที</div>
+            </div>
+          </div>
+        </div>
+
+        <!-- The actual app preview -->
+        <div>
+          <h3>ปลายทาง · live ที่ <code>fit-analyzer.pages.dev</code></h3>
+          <div class="appmock">
+            <div class="browser">
+              <div class="dots"><i></i><i></i><i></i></div>
+              <div class="url">fit-analyzer.pages.dev</div>
+            </div>
+            <div class="app">
+              <!-- left panel: input -->
+              <div class="left">
+                <h4>Resume × JD</h4>
+                <div class="drop">📄 drop resume.pdf<br><span style="color:var(--ink-4);font-size:10px">หรือพิมพ์ข้อความเอง</span></div>
+                <div class="ta">Full-Stack Engineer (React + Node.js), 3+ years...</div>
+                <div class="btn">Analyze fit</div>
+              </div>
+              <!-- right panel: result -->
+              <div class="right">
+                <h4>Fit report</h4>
+                <div class="gauge">
+                  <svg width="56" height="56" viewBox="0 0 56 56">
+                    <circle cx="28" cy="28" r="22" fill="none" stroke="#E3DACC" stroke-width="6"/>
+                    <circle cx="28" cy="28" r="22" fill="none" stroke="#6F864F" stroke-width="6"
+                      stroke-linecap="round" stroke-dasharray="138.2" stroke-dashoffset="33.2"
+                      transform="rotate(-90 28 28)"/>
+                    <text x="28" y="32" text-anchor="middle" font-family="Georgia,serif" font-size="16" font-weight="600" fill="#1B1A17">76</text>
+                  </svg>
+                  <div class="info">
+                    <div class="score">76</div>
+                    <div class="verdict">● strong</div>
+                    <div class="case">pim · frontend × full-stack</div>
+                  </div>
+                </div>
+                <div>
+                  <div class="dimrow"><span class="name">tech_skills</span><span class="track"><span class="fill" style="width:78%"></span></span><span class="val">78</span></div>
+                  <div class="dimrow"><span class="name">experience</span><span class="track"><span class="fill" style="width:72%"></span></span><span class="val">72</span></div>
+                  <div class="dimrow"><span class="name">education</span><span class="track"><span class="fill" style="width:65%;background:var(--gold)"></span></span><span class="val" style="color:var(--gold)">65</span></div>
+                  <div class="dimrow"><span class="name">domain_fit</span><span class="track"><span class="fill" style="width:75%"></span></span><span class="val">75</span></div>
+                </div>
+                <div style="display:flex;flex-direction:column;gap:3px;margin-top:2px">
+                  <div class="find s">React + TS proficiency, shipped SaaS dashboard</div>
+                  <div class="find s">UI/design background = unique edge</div>
+                  <div class="find g">Backend depth needs ramp-up</div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- terminal command preview -->
+        <div>
+          <h3>คำสั่งของพี่ (copy ไปวางได้)</h3>
+          <div class="term">
+            <div class="top"><span>your terminal · ~3 นาที</span><span style="color:#E0A98E">interactive</span></div>
+<pre><span class="c">$</span> cd worker
+<span class="c">$</span> npx wrangler login            <span class="c"># browser เปิดให้</span>
+<span class="c">$</span> npx wrangler secret put GEMINI_API_KEY
+<span class="hi">  ›</span> <span class="c">[paste key ที่อยู่ใน .env]</span>
+
+<span class="c">$</span> <span class="s">echo "logged in" → ส่งให้ผมในแชต</span></pre>
+          </div>
+        </div>
+
+      </div>
+
+      <div class="ft">
+        <strong style="color:var(--clay)">เลือก 2C</strong> ถ้าพี่ยังมี energy + อยากเห็นมันรันบน internet จริงๆ ก่อนจบวัน
+      </div>
+    </div>
+
+    <!-- PATH 2: หยุดเซฟ -->
+    <div class="path">
+      <div class="hd">
+        <div class="row1"><span class="num save">2D</span><span class="tt">หยุดเซฟ · ต่อ session หน้า</span></div>
+        <div class="muted small">~5 นาที · งาน 14 อย่างที่เสร็จไม่หาย</div>
+      </div>
+
+      <div class="body">
+
+        <!-- stats -->
+        <div class="stats">
+          <div class="statbox"><div class="v muted">5</div><div class="l">นาที</div></div>
+          <div class="statbox"><div class="v muted">14/19</div><div class="l">tasks</div></div>
+          <div class="statbox"><div class="v muted">local</div><div class="l">only</div></div>
+        </div>
+
+        <!-- what I'll do -->
+        <div>
+          <h3>ผมจะทำให้</h3>
+          <ul style="padding-left:18px;font-size:13px;color:var(--ink-2);line-height:1.65">
+            <li>kill worker dev server บน :8787</li>
+            <li>เขียน <code>session-summary.html</code></li>
+            <li>archive plan + todos</li>
+            <li>เซฟ resume context</li>
+          </ul>
+        </div>
+
+        <!-- what's preserved -->
+        <div>
+          <h3>ปลายทาง · session-summary</h3>
+          <div class="doc">
+            <h5>session 2026-05-26 · 14/19 done</h5>
+            <ul>
+              <li>worker scaffold verified (vitest 4/4)</li>
+              <li>web scaffold verified (build 1.8MB)</li>
+              <li>Playwright happy-path passes</li>
+              <li>smoke 3 pairs · prompt v3 calibrated</li>
+              <li>worker dev server killed</li>
+            </ul>
+            <div style="margin-top:8px;padding-top:8px;border-top:1px dashed var(--line);font-size:11.5px;color:var(--ink-3)">
+              <strong>pending:</strong> deploy chain (TASK-014…017) + manual UI QA (TASK-012)
+            </div>
+          </div>
+        </div>
+
+        <!-- resume next session -->
+        <div>
+          <h3>เปิด session หน้า</h3>
+          <div class="term">
+            <div class="top"><span>next session</span><span>resume</span></div>
+<pre><span class="c">›</span> /workflow-todo
+
+<span class="s"># ผมโหลด resume context</span>
+<span class="s"># เริ่มจาก wrangler login → E4 ทันที</span></pre>
+          </div>
+        </div>
+
+      </div>
+
+      <div class="ft">
+        เลือก 2D ถ้าไม่อยาก login ตอนนี้ · หรือเก็บแรงไว้ทำต่อพรุ่งนี้
+      </div>
+    </div>
+
+  </div>
+
+  <!-- response cue -->
+  <div class="cue">
+    <div>
+      <div class="ask">เลือกได้แล้วครับ — พิมพ์ตัวอักษรในแชตเลย</div>
+      <div class="hint">หรือบอกว่า "หาทางอื่น" / "ขยายเพิ่ม" ก็ได้</div>
+    </div>
+    <div style="display:flex;gap:8px;align-items:center">
+      <div class="reply">2C</div>
+      <span class="muted">หรือ</span>
+      <div class="reply" style="border-color:var(--line-2);color:var(--ink-3)">2D</div>
+    </div>
+  </div>
+
+  <p class="foot">decisions-e3 archived · ไฟล์นี้คือ refresh หลัง prompt calibration เสร็จ · เปิดจาก <code>instruction/work/next-step.html</code></p>
+
+</div>
+</body>
+</html>

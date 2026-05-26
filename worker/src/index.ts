@@ -4,6 +4,7 @@ export interface Env {
   GEMINI_API_KEY: string;
   ALLOW_ORIGIN: string;
   RATE_LIMITER: { limit: (o: { key: string }) => Promise<{ success: boolean }> };
+  ASSETS: { fetch: (req: Request) => Promise<Response> };
 }
 
 const MAX_FIELD = 15000;
@@ -19,6 +20,13 @@ function json(obj: unknown, status: number, cors: Record<string, string>): Respo
 
 export default {
   async fetch(req: Request, env: Env): Promise<Response> {
+    const url = new URL(req.url);
+
+    // non-API requests → static SPA assets (handled by Cloudflare Workers Assets)
+    if (url.pathname !== "/api/analyze") {
+      return env.ASSETS.fetch(req);
+    }
+
     const cors = {
       "Access-Control-Allow-Origin": env.ALLOW_ORIGIN,
       "Access-Control-Allow-Methods": "POST, OPTIONS",

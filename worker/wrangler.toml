@@ -2,8 +2,18 @@ name = "fit-analyzer-worker"
 main = "src/index.ts"
 compatibility_date = "2026-05-26"
 
+routes = [
+  { pattern = "fit-analyzer.jairukchan.com", custom_domain = true }
+]
+
+[assets]
+directory = "../web/dist"
+binding = "ASSETS"
+not_found_handling = "single-page-application"
+
 [vars]
-ALLOW_ORIGIN = "http://localhost:5173"
+# same-origin under the custom domain; the .workers.dev URL still works too
+ALLOW_ORIGIN = "https://fit-analyzer.jairukchan.com"
 
 [[ratelimits]]
 name         = "RATE_LIMITER"

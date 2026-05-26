@@ -6,6 +6,7 @@ function makeEnv(overrides: Partial<Env> = {}): Env {
     GEMINI_API_KEY: "test-key",
     ALLOW_ORIGIN: "http://localhost:5173",
     RATE_LIMITER: { limit: async () => ({ success: true }) },
+    ASSETS: { fetch: async () => new Response("not-found", { status: 404 }) },
     ...overrides,
   };
 }
