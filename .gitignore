@@ -1,0 +1,31 @@
+# dependencies
+node_modules/
+
+# build output
+dist/
+build/
+.vite/
+
+# cloudflare worker
+.wrangler/
+.dev.vars
+
+# env files (real secrets — never commit). .example files ARE committed.
+.env
+.env.local
+.env.*.local
+
+# tests
+coverage/
+playwright-report/
+test-results/
+
+# editor / os
+.DS_Store
+Thumbs.db
+*.log
+.vscode/
+.idea/
+
+# agent
+agent-temp/

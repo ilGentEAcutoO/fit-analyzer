@@ -1,0 +1,173 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Report</title>
+<style>*{box-sizing:border-box;margin:0;padding:0}
+:root{
+  --bg:#f6f7f9;--surface:#ffffff;--surface-2:#f0f2f5;--border:#e2e5ea;
+  --ink:#1a1d23;--ink-2:#5b6470;--ink-3:#8a93a0;
+  --accent:#5b54e8;--accent-soft:#ecebfd;
+  --pending:#8a93a0;--pending-bg:#eef0f3;
+  --progress:#2563eb;--progress-bg:#e4edff;
+  --impl:#d97706;--impl-bg:#fdf0db;
+  --done:#15a06e;--done-bg:#e0f5ec;
+  --blocked:#dc2626;--blocked-bg:#fde5e5;
+  --code-bg:#1c2030;--code-ink:#e6e8ef;
+  --radius:14px;--shadow:0 1px 3px rgba(20,24,33,.06),0 8px 24px rgba(20,24,33,.05);
+  --mono:ui-monospace,"SF Mono",Menlo,Consolas,monospace;
+  --sans:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,"Helvetica Neue",Arial,sans-serif;color-scheme:light;
+}
+
+body{font-family:var(--sans);background:var(--bg);color:var(--ink);line-height:1.6;-webkit-font-smoothing:antialiased;font-size:15px}
+.wrap{max-width:1080px;margin:0 auto;padding:32px 24px 80px}
+a{color:var(--accent);text-decoration:none}
+a:hover{text-decoration:underline}
+.doc-head{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:26px 28px;box-shadow:var(--shadow);margin-bottom:24px}
+.doc-head .kicker{font-size:12px;font-weight:700;letter-spacing:.09em;text-transform:uppercase;color:var(--accent)}
+.doc-head h1{font-size:27px;font-weight:700;margin:6px 0 12px;letter-spacing:-.02em}
+.meta-row{display:flex;flex-wrap:wrap;gap:8px 18px;font-size:13px;color:var(--ink-2)}
+.meta-row b{color:var(--ink);font-weight:600}
+.layout{display:grid;grid-template-columns:212px 1fr;gap:28px;align-items:start}
+.toc{position:sticky;top:24px;font-size:13.5px}
+.toc .toc-label{font-size:11px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:var(--ink-3);margin-bottom:10px}
+.toc a{display:block;padding:6px 10px;border-radius:8px;color:var(--ink-2);border-left:2px solid transparent}
+.toc a:hover{background:var(--surface-2);text-decoration:none;color:var(--ink)}
+.toc a.active{color:var(--accent);border-left-color:var(--accent);background:var(--accent-soft);font-weight:600}
+section{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:24px 26px;box-shadow:var(--shadow);margin-bottom:20px;scroll-margin-top:20px}
+section>h2{font-size:18px;font-weight:670;letter-spacing:-.01em;margin-bottom:14px;display:flex;align-items:center;gap:9px;flex-wrap:wrap}
+h3{font-size:14.5px;font-weight:640;margin:18px 0 8px;color:var(--ink)}
+.section-stamp{font-size:12px;color:var(--ink-3);font-weight:500}
+p{margin:8px 0}
+ul,ol{margin:8px 0 8px 22px}
+li{margin:4px 0}
+.pill{display:inline-flex;align-items:center;gap:5px;font-size:12px;font-weight:600;padding:3px 10px;border-radius:999px;white-space:nowrap}
+.pill::before{content:"";width:7px;height:7px;border-radius:50%;background:currentColor}
+.pill.pending{color:var(--pending);background:var(--pending-bg)}
+.pill.progress{color:var(--progress);background:var(--progress-bg)}
+.pill.impl{color:var(--impl);background:var(--impl-bg)}
+.pill.done{color:var(--done);background:var(--done-bg)}
+.pill.blocked{color:var(--blocked);background:var(--blocked-bg)}
+.badge{display:inline-block;font-size:11px;font-weight:600;padding:2px 8px;border-radius:6px;background:var(--surface-2);color:var(--ink-2);border:1px solid var(--border)}
+.badge.high{color:var(--blocked);background:var(--blocked-bg);border-color:transparent}
+.badge.medium{color:var(--impl);background:var(--impl-bg);border-color:transparent}
+.badge.low{color:var(--ink-2)}
+.tag{display:inline-block;font-size:11px;font-family:var(--mono);padding:2px 7px;border-radius:5px;background:var(--accent-soft);color:var(--accent);margin:2px 3px 2px 0}
+.stats{display:grid;grid-template-columns:repeat(auto-fit,minmax(110px,1fr));gap:12px;margin-bottom:20px}
+.stat{background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:14px 16px;box-shadow:var(--shadow)}
+.stat .n{font-size:26px;font-weight:700;line-height:1}
+.stat .l{font-size:11.5px;color:var(--ink-2);margin-top:4px;font-weight:500}
+.stat.t-pending .n{color:var(--pending)}
+.stat.t-progress .n{color:var(--progress)}
+.stat.t-impl .n{color:var(--impl)}
+.stat.t-done .n{color:var(--done)}
+.stat.t-blocked .n{color:var(--blocked)}
+.bar{height:7px;background:var(--surface-2);border-radius:999px;overflow:hidden;margin:6px 0}
+.bar>i{display:block;height:100%;background:var(--accent);border-radius:999px}
+.task{border:1px solid var(--border);border-radius:12px;padding:16px 18px;margin:12px 0;background:var(--surface)}
+.task.s-blocked{border-color:var(--blocked)}
+.task.s-done{opacity:.82}
+.task-top{display:flex;justify-content:space-between;gap:12px;align-items:flex-start;flex-wrap:wrap}
+.task-id{font-family:var(--mono);font-size:12px;color:var(--ink-3);font-weight:600}
+.task-name{font-size:15px;font-weight:630;margin:2px 0 0}
+.task-attrs{display:flex;flex-wrap:wrap;gap:6px 14px;font-size:12.5px;color:var(--ink-2);margin:10px 0}
+.task-attrs b{color:var(--ink);font-weight:600}
+.checklist{list-style:none;margin:8px 0 0}
+.checklist li{display:flex;gap:8px;align-items:flex-start;font-size:13.5px;margin:5px 0}
+.checklist .box{width:15px;height:15px;border:1.6px solid var(--ink-3);border-radius:4px;flex-shrink:0;margin-top:2px;font-size:11px;text-align:center;line-height:13px}
+.checklist li.ok .box{background:var(--done);border-color:var(--done);color:#fff}
+.checklist li.ok .box::after{content:"\2713"}
+.checklist li.ok span{color:var(--ink-3);text-decoration:line-through}
+.checklist .kind{font-family:var(--mono);font-size:11px;color:var(--accent);font-weight:600}
+.notes{margin-top:10px;border-left:2px solid var(--border);padding-left:12px}
+.notes .n{font-size:12.5px;color:var(--ink-2);margin:3px 0}
+.notes .n time{font-family:var(--mono);color:var(--ink-3);margin-right:7px}
+table{width:100%;border-collapse:collapse;margin:10px 0;font-size:13px}
+th,td{text-align:left;padding:8px 12px;border-bottom:1px solid var(--border);vertical-align:top}
+th{font-size:11.5px;text-transform:uppercase;letter-spacing:.05em;color:var(--ink-3);font-weight:700}
+tr:last-child td{border-bottom:none}
+pre{background:var(--code-bg);color:var(--code-ink);border-radius:10px;padding:14px 16px;overflow-x:auto;font-family:var(--mono);font-size:12.5px;line-height:1.55;margin:10px 0}
+code{font-family:var(--mono);font-size:.88em;background:var(--surface-2);padding:1px 5px;border-radius:4px}
+pre code{background:none;padding:0;font-size:inherit}
+.note{border-radius:10px;padding:12px 15px;margin:12px 0;font-size:13.5px;display:flex;gap:10px}
+.note .ico{font-size:15px;line-height:1.4}
+.note.info{background:var(--progress-bg)}
+.note.warn{background:var(--impl-bg)}
+.note.ok{background:var(--done-bg)}
+.note.danger{background:var(--blocked-bg)}
+.tabs{display:flex;gap:4px;flex-wrap:wrap;margin-bottom:16px;border-bottom:1px solid var(--border)}
+.tabs button{font-family:inherit;font-size:13px;font-weight:600;padding:9px 16px;border:none;background:none;color:var(--ink-2);cursor:pointer;border-bottom:2px solid transparent;margin-bottom:-1px}
+.tabs button:hover{color:var(--ink)}
+.tabs button.active{color:var(--accent);border-bottom-color:var(--accent)}
+.tabpane{display:none}
+.tabpane.active{display:block}
+.empty{text-align:center;padding:50px 20px;color:var(--ink-3)}
+.empty .big{font-size:40px;margin-bottom:10px}
+.diagram{background:var(--surface-2);border:1px dashed var(--border);border-radius:10px;padding:16px;text-align:center;margin:12px 0}
+.diagram svg{max-width:100%;height:auto}
+.foot{text-align:center;font-size:12px;color:var(--ink-3);margin-top:36px}
+hr{border:none;border-top:1px solid var(--border);margin:20px 0}
+@media(max-width:760px){.layout{grid-template-columns:1fr}.toc{position:static;display:flex;gap:6px;overflow-x:auto;padding-bottom:8px}.wrap{padding:18px 14px 60px}}
+@media print{body{background:#fff}section,.doc-head{box-shadow:none}.toc,.tabs{display:none}}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <div class="doc-head">
+    <div class="kicker">Workflow &middot; __KIND__</div>
+    <h1>__TITLE__</h1>
+    <div class="meta-row">
+      <span><b>Generated</b> __CREATED__</span>
+      <span><b>Scope</b> __SCOPE__</span>
+    </div>
+  </div>
+
+  <div class="layout">
+    <nav class="toc" id="toc"><div class="toc-label">Contents</div></nav>
+    <main id="content">
+
+      <!-- ═══ Fill with <section data-toc="Label"> blocks. Useful components: ═══
+
+        Outcome stats:
+          <div class="stats">
+            <div class="stat t-done"><div class="n">12</div><div class="l">Passed</div></div>
+            <div class="stat t-blocked"><div class="n">0</div><div class="l">Failed</div></div>
+          </div>
+
+        Before / after console (test-report):
+          <table><thead><tr><th>Console</th><th>Before</th><th>After</th></tr></thead>
+            <tbody>
+              <tr><td>Errors</td><td>2</td><td><span class="pill done">0</span></td></tr>
+              <tr><td>Warnings</td><td>3</td><td><span class="pill done">0</span></td></tr>
+            </tbody></table>
+
+        PDCA / fix log:  one <div class="task"> per issue fixed.
+        Files changed:   <table> of path + change summary.
+        Notes / callouts: <div class="note ok|warn|danger">.
+      -->
+      <section data-toc="Summary">
+        <h2>Summary</h2>
+        <div class="stats">
+          <div class="stat t-done"><div class="n">0</div><div class="l">Passed</div></div>
+          <div class="stat t-blocked"><div class="n">0</div><div class="l">Failed</div></div>
+          <div class="stat t-progress"><div class="n">0</div><div class="l">Fixed</div></div>
+        </div>
+        <p>Replace this section with the report body.</p>
+      </section>
+
+    </main>
+  </div>
+  <div class="foot">Generated by the workflow-skills system &middot; <code>html-doc</code></div>
+</div>
+<script>
+const toc=document.getElementById('toc'),secs=[...document.querySelectorAll('section[data-toc]')];
+secs.forEach((s,i)=>{s.id=s.id||'sec-'+i;const a=document.createElement('a');
+  a.href='#'+s.id;a.textContent=s.dataset.toc;toc.appendChild(a);});
+const links=[...toc.querySelectorAll('a')];
+const spy=()=>{let c=secs[0];for(const s of secs)if(s.getBoundingClientRect().top<=120)c=s;
+  links.forEach(l=>l.classList.toggle('active',l.hash==='#'+c.id));};
+document.addEventListener('scroll',spy,{passive:true});spy();
+</script>
+</body>
+</html>

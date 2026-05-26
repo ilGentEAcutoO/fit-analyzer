@@ -1,0 +1,699 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Workflow Skills - HTML output, redesigned</title>
+<style>/* ============================================================
+   BIRCHLINE  -  design system for workflow HTML artifacts
+   Warm editorial. Serif display, mono labels, sans body.
+   Self-contained, light only, offline-safe font stacks.
+   ============================================================ */
+*{box-sizing:border-box;margin:0;padding:0}
+:root{
+  /* surfaces */
+  --paper:#F4F1E8; --paper-2:#EDE9DC; --card:#FFFFFF; --card-2:#FBF9F2;
+  --chrome:#E9E4D6; --line:#E2DCCC; --line-2:#D4CCB8;
+  /* ink */
+  --ink:#1B1A17; --ink-2:#55514A; --ink-3:#8B8678; --ink-4:#A8A395;
+  /* birchline palette */
+  --clay:#C8623E; --clay-soft:#F2E0D6; --clay-line:#E0A98E;
+  --olive:#6F864F; --olive-soft:#E4E8D8; --olive-line:#AEBE8E;
+  --sky:#5E80A6; --sky-soft:#DCE4ED;
+  --gold:#B98828; --gold-soft:#F1E6CC;
+  --red:#B4452F; --red-soft:#F2DDD7;
+  --oat:#E3DACC;
+  /* code panel */
+  --dark:#1F1E1B; --dark-2:#2A2925; --dark-ink:#E9E5DA; --dark-dim:#8D887B;
+  /* type */
+  --serif:'Iowan Old Style','Palatino Linotype',Palatino,'Hoefler Text',Georgia,'Times New Roman',serif;
+  --sans:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,'Helvetica Neue',Arial,sans-serif;
+  --mono:'SF Mono',ui-monospace,'JetBrains Mono',Menlo,Consolas,monospace;
+  --r:14px; --r-s:9px;
+  --shadow:0 1px 2px rgba(31,30,27,.05),0 10px 30px -12px rgba(31,30,27,.16);
+  --shadow-s:0 1px 2px rgba(31,30,27,.06),0 4px 12px -6px rgba(31,30,27,.12);
+  color-scheme:light;
+}
+html,body{background:var(--paper)}
+body{font-family:var(--sans);color:var(--ink);line-height:1.62;font-size:15px;
+  -webkit-font-smoothing:antialiased;text-rendering:optimizeLegibility}
+
+/* ---- type helpers ---- */
+.kicker{font-family:var(--mono);font-size:11.5px;font-weight:600;letter-spacing:.16em;
+  text-transform:uppercase;color:var(--ink-3)}
+.display{font-family:var(--serif);font-weight:600;letter-spacing:-.015em;line-height:1.12;
+  font-size:clamp(28px,4.4vw,42px)}
+h1,h2,h3{font-family:var(--serif);font-weight:600;letter-spacing:-.01em;line-height:1.2}
+h2{font-size:23px} h3{font-size:18px}
+.lead{font-size:17px;color:var(--ink-2);line-height:1.6}
+.mono{font-family:var(--mono)}
+a{color:var(--clay);text-decoration:none;border-bottom:1px solid var(--clay-line)}
+code{font-family:var(--mono);font-size:.9em;background:var(--paper-2);
+  padding:.1em .38em;border-radius:5px;color:var(--ink)}
+
+/* ---- window chrome (browser-frame wrapper) ---- */
+.window{background:var(--card);border:1px solid var(--line);border-radius:var(--r);
+  box-shadow:var(--shadow);overflow:hidden}
+.window>.bar{background:var(--chrome);border-bottom:1px solid var(--line);
+  padding:13px 16px;display:flex;align-items:center;gap:8px;position:relative}
+.window>.bar .dots{display:flex;gap:7px}
+.window>.bar .dots i{width:11px;height:11px;border-radius:50%;background:#CFC8B6;display:block}
+.window>.bar .title{position:absolute;left:0;right:0;text-align:center;
+  font-family:var(--mono);font-size:12.5px;color:var(--ink-3);pointer-events:none}
+.window>.body{padding:26px 28px}
+
+/* ---- generic card ---- */
+.card{background:var(--card);border:1px solid var(--line);border-radius:var(--r);
+  padding:20px 22px;box-shadow:var(--shadow-s)}
+
+/* ---- pills / tags / badges ---- */
+.pill{display:inline-flex;align-items:center;gap:5px;font-family:var(--mono);
+  font-size:11px;font-weight:600;letter-spacing:.04em;padding:3px 9px;border-radius:20px;
+  border:1px solid transparent;text-transform:uppercase}
+.pill::before{content:"";width:6px;height:6px;border-radius:50%;background:currentColor;opacity:.9}
+.pill.todo{background:var(--paper-2);color:var(--ink-3)}
+.pill.doing{background:var(--sky-soft);color:var(--sky)}
+.pill.impl{background:var(--gold-soft);color:var(--gold)}
+.pill.done{background:var(--olive-soft);color:var(--olive)}
+.pill.block{background:var(--red-soft);color:var(--red)}
+.tag{display:inline-block;font-family:var(--mono);font-size:11px;color:var(--ink-2);
+  background:var(--card-2);border:1px solid var(--line);border-radius:6px;padding:2px 7px}
+.badge{font-family:var(--mono);font-size:10.5px;font-weight:700;letter-spacing:.05em;
+  text-transform:uppercase;padding:2px 7px;border-radius:5px}
+.badge.hi{background:var(--clay-soft);color:var(--clay)}
+.badge.mid{background:var(--gold-soft);color:var(--gold)}
+.badge.lo{background:var(--paper-2);color:var(--ink-3)}
+
+/* ---- toggle switch ---- */
+.tg{appearance:none;cursor:pointer;width:42px;height:24px;border-radius:14px;
+  background:var(--line-2);position:relative;transition:background .18s;flex:none}
+.tg::after{content:"";position:absolute;top:3px;left:3px;width:18px;height:18px;
+  border-radius:50%;background:#fff;box-shadow:0 1px 3px rgba(0,0,0,.25);transition:left .18s}
+.tg:checked{background:var(--olive)}
+.tg:checked::after{left:21px}
+.tg.warn:checked{background:var(--clay)}
+
+/* ---- buttons ---- */
+.btn{font-family:var(--sans);font-size:14px;font-weight:600;cursor:pointer;
+  padding:9px 18px;border-radius:var(--r-s);border:1px solid transparent;transition:.15s}
+.btn.primary{background:var(--clay);color:#fff}
+.btn.primary:hover{background:#b5552f}
+.btn.ghost{background:var(--card);color:var(--ink);border-color:var(--line-2)}
+.btn.ghost:hover{background:var(--card-2)}
+.btn.dark{background:var(--ink);color:var(--paper)}
+.btn.block{display:block;width:100%;text-align:center}
+
+/* ---- sliders ---- */
+.range{appearance:none;width:100%;height:5px;border-radius:3px;background:var(--oat);outline:none}
+.range::-webkit-slider-thumb{appearance:none;width:18px;height:18px;border-radius:50%;
+  background:var(--ink);cursor:pointer;border:3px solid var(--card);box-shadow:0 1px 4px rgba(0,0,0,.3)}
+.range::-moz-range-thumb{width:14px;height:14px;border-radius:50%;background:var(--ink);
+  cursor:pointer;border:3px solid var(--card)}
+
+/* ---- stat callout ---- */
+.stat{background:var(--card-2);border:1px solid var(--line);border-radius:var(--r-s);
+  padding:16px 18px}
+.stat .n{font-family:var(--serif);font-size:34px;font-weight:600;line-height:1;letter-spacing:-.02em}
+.stat .l{font-family:var(--mono);font-size:11px;letter-spacing:.08em;text-transform:uppercase;
+  color:var(--ink-3);margin-bottom:8px}
+.stat.good .n{color:var(--olive)} .stat.bad .n{color:var(--red)} .stat.key .n{color:var(--clay)}
+
+/* ---- callout note ---- */
+.note{border-radius:var(--r-s);padding:13px 15px;font-size:14px;border:1px solid;
+  display:flex;gap:10px}
+.note .ic{font-family:var(--mono);font-weight:700;flex:none}
+.note.info{background:var(--sky-soft);border-color:#C3D0DE;color:#3f5a76}
+.note.ok{background:var(--olive-soft);border-color:var(--olive-line);color:#4d5f37}
+.note.warn{background:var(--clay-soft);border-color:var(--clay-line);color:#9a4a2c}
+.note.danger{background:var(--red-soft);border-color:#DDB3A8;color:#8d3322}
+
+/* ---- code panels ---- */
+.code{background:var(--dark);border-radius:var(--r-s);overflow:hidden;
+  font-family:var(--mono);font-size:12.5px;line-height:1.7}
+.code .top{background:var(--dark-2);padding:8px 14px;display:flex;justify-content:space-between;
+  color:var(--dark-dim);font-size:11.5px;border-bottom:1px solid #000}
+.code pre{padding:14px 16px;color:var(--dark-ink);overflow-x:auto}
+.code .c{color:var(--dark-dim)} .code .k{color:#D9A05B} .code .s{color:#9BB06E}
+.code .add{color:#9BB06E} .code .del{color:#D98A6E}
+
+/* ---- diff rows ---- */
+.diff{font-family:var(--mono);font-size:12.5px;line-height:1.75}
+.diff .row{padding:1px 10px;white-space:pre-wrap}
+.diff .row.add{background:var(--olive-soft);color:#4d5f37}
+.diff .row.del{background:var(--red-soft);color:#8d3322}
+
+/* ---- collapsible steps (<details>) ---- */
+.step{border:1px solid var(--line);border-radius:var(--r-s);margin-bottom:8px;
+  background:var(--card);overflow:hidden}
+.step[open]{border-color:var(--clay-line);box-shadow:0 0 0 3px var(--clay-soft)}
+.step>summary{list-style:none;cursor:pointer;padding:13px 16px;display:flex;
+  align-items:center;gap:11px;font-family:var(--serif);font-size:17px;font-weight:600}
+.step>summary::-webkit-details-marker{display:none}
+.step>summary .ar{font-family:var(--mono);color:var(--clay);font-size:12px;transition:transform .15s}
+.step[open]>summary .ar{transform:rotate(90deg)}
+.step>summary .num{font-family:var(--mono);font-size:13px;color:var(--ink-3);font-weight:600}
+.step>summary .loc{margin-left:auto;font-family:var(--mono);font-size:11.5px;color:var(--ink-4);font-weight:400}
+.step .inner{padding:2px 16px 16px 41px;color:var(--ink-2);font-size:14px}
+
+/* plain collapsible (details) for "boring detail" */
+.fold{border-top:1px solid var(--line);margin-top:14px;padding-top:12px}
+.fold>summary{list-style:none;cursor:pointer;font-family:var(--mono);font-size:11.5px;
+  letter-spacing:.06em;text-transform:uppercase;color:var(--ink-3)}
+.fold>summary::-webkit-details-marker{display:none}
+.fold>summary::before{content:"+ ";color:var(--clay)}
+.fold[open]>summary::before{content:"- "}
+.fold .inner{padding-top:10px;font-size:13.5px;color:var(--ink-2)}
+
+/* ---- tabs ---- */
+.tabs{display:flex;gap:2px;border-bottom:1px solid var(--line)}
+.tabs button{font-family:var(--mono);font-size:12.5px;cursor:pointer;background:none;
+  border:none;padding:8px 13px;color:var(--ink-3);border-bottom:2px solid transparent;margin-bottom:-1px}
+.tabs button.on{color:var(--ink);border-bottom-color:var(--clay);font-weight:600}
+.tabpane{display:none} .tabpane.on{display:block}
+
+/* ---- TOC sidebar + scroll-spy ---- */
+.toc{position:sticky;top:20px;font-family:var(--mono);font-size:13px;border-left:2px solid var(--line)}
+.toc a{display:block;padding:4px 0 4px 14px;color:var(--ink-3);border:none;
+  margin-left:-2px;border-left:2px solid transparent}
+.toc a.on{color:var(--ink);border-left-color:var(--clay);font-weight:600}
+.toc a.sub{padding-left:28px;font-size:12px}
+
+/* ---- approach / comparison grid ---- */
+.grid-3{display:grid;grid-template-columns:repeat(3,1fr);gap:14px}
+.grid-2{display:grid;grid-template-columns:1fr 1fr;gap:16px}
+.approach{background:var(--card-2);border:1.5px solid var(--line);border-radius:var(--r);
+  padding:18px;cursor:pointer;transition:.16s}
+.approach:hover{border-color:var(--line-2);transform:translateY(-2px)}
+.approach.pick{border-color:var(--clay);background:var(--card);
+  box-shadow:0 0 0 4px var(--clay-soft),var(--shadow-s)}
+.approach .hd{display:flex;justify-content:space-between;align-items:baseline;margin-bottom:10px}
+.approach .hd .id{font-family:var(--mono);font-size:13px;color:var(--ink-4)}
+.approach .pro{color:var(--olive);font-family:var(--mono);font-size:12.5px}
+.approach .con{color:var(--red);font-family:var(--mono);font-size:12.5px}
+
+/* ---- task board ---- */
+.board{display:grid;grid-template-columns:repeat(3,1fr);gap:14px}
+.col-h{font-family:var(--mono);font-size:11.5px;letter-spacing:.08em;text-transform:uppercase;
+  color:var(--ink-3);padding:0 2px 8px;display:flex;justify-content:space-between}
+.tk{background:var(--card);border:1px solid var(--line);border-radius:var(--r-s);
+  padding:12px 13px;margin-bottom:9px;box-shadow:var(--shadow-s)}
+.tk .tkn{font-weight:600;font-size:14px;margin:5px 0 7px}
+.tk .meta{display:flex;gap:6px;flex-wrap:wrap;align-items:center}
+
+/* ---- progress ring / bar ---- */
+.bar-track{height:7px;background:var(--oat);border-radius:4px;overflow:hidden}
+.bar-fill{height:100%;background:var(--olive);border-radius:4px}
+
+/* ---- swatches ---- */
+.sw{border-radius:10px;height:74px;border:1px solid rgba(0,0,0,.06)}
+.sw-l{font-family:var(--mono);font-size:11.5px;margin-top:6px;color:var(--ink-2)}
+.sw-h{font-family:var(--mono);font-size:11px;color:var(--ink-4)}
+
+/* ---- table ---- */
+table{width:100%;border-collapse:collapse;font-size:13.5px}
+th{font-family:var(--mono);font-size:11px;letter-spacing:.06em;text-transform:uppercase;
+  color:var(--ink-3);text-align:left;padding:7px 10px;border-bottom:1px solid var(--line-2)}
+td{padding:8px 10px;border-bottom:1px solid var(--line);color:var(--ink-2)}
+tr:last-child td{border-bottom:none}
+
+/* ---- annotation card (code review) ---- */
+.annot{border:1.5px solid var(--line-2);border-radius:var(--r-s);padding:12px 14px;background:var(--card)}
+.annot.blocking{border-color:var(--clay);background:var(--clay-soft)}
+.annot.nit{border-color:var(--line-2)}
+.annot.nice{border-color:var(--olive-line);background:var(--olive-soft)}
+.annot .lbl{font-family:var(--mono);font-size:12px;font-weight:700;margin-bottom:5px}
+.annot.blocking .lbl{color:var(--clay)} .annot.nice .lbl{color:var(--olive)}
+.annot.nit .lbl{color:var(--ink-3)}
+
+/* ---- misc layout ---- */
+.row{display:flex;gap:10px;align-items:center}
+.between{display:flex;justify-content:space-between;align-items:center}
+.muted{color:var(--ink-3)} .small{font-size:13px}
+hr{border:none;border-top:1px solid var(--line);margin:18px 0}
+.divider{height:1px;background:var(--line);margin:16px 0}
+
+@media(max-width:720px){
+  .grid-3,.grid-2,.board{grid-template-columns:1fr}
+  .window>.body{padding:18px 16px}
+}
+@media print{
+  body{background:#fff}
+  .window{box-shadow:none;break-inside:avoid}
+  .toc,.tabs{display:none}
+}
+
+.page{max-width:1080px;margin:0 auto;padding:46px 24px 90px}
+.hero-k{margin-bottom:14px}
+.hero h1{font-size:clamp(32px,5vw,50px);margin:0 0 16px}
+.hero .lead{max-width:620px;margin-bottom:26px}
+.principle{display:grid;grid-template-columns:repeat(3,1fr);gap:12px;margin-top:14px}
+.principle .card{padding:15px 16px}
+.principle .pk{font-family:var(--mono);font-size:11px;letter-spacing:.1em;
+  text-transform:uppercase;color:var(--clay);margin-bottom:6px}
+.principle p{font-size:13.5px;color:var(--ink-2)}
+section.pat{margin-top:54px}
+.pat-head{margin-bottom:16px}
+.pat-head .ix{font-family:var(--mono);font-size:12px;color:var(--ink-4);letter-spacing:.05em}
+.pat-head h2{margin:3px 0 5px}
+.pat-head p{color:var(--ink-2);max-width:640px;font-size:14.5px}
+.preview-box{background:var(--card-2);border:1px dashed var(--line-2);border-radius:var(--r-s);
+  display:flex;align-items:center;justify-content:center;padding:34px}
+</style>
+</head>
+<body>
+<div class="page">
+
+  <!-- ============ HERO ============ -->
+  <header class="hero">
+    <div class="hero-k kicker">Workflow Skills &nbsp;/&nbsp; output redesign</div>
+    <h1>Every plan and record<br>is now a <em>built artifact</em>.</h1>
+    <p class="lead">The workflow skills no longer hand back stiff documents. Each skill
+      now asks one question first &mdash; <em>what would let you actually see this?</em> &mdash;
+      and builds a purpose-shaped HTML artifact for it. Detail that doesn't earn its
+      place is folded away or kept by the agent. What's left is visual.</p>
+    <div class="principle">
+      <div class="card"><div class="pk">Pick the shape</div>
+        <p>A comparison grid, a prototype, an explainer, a board &mdash; the format follows
+          the task, never a fixed template.</p></div>
+      <div class="card"><div class="pk">Show, don't tell</div>
+        <p>Mockups, diagrams, real toggles and sliders instead of paragraphs describing them.</p></div>
+      <div class="card"><div class="pk">Fold the noise</div>
+        <p>The essence stays on screen. Deep detail lives behind a disclosure or with the agent.</p></div>
+    </div>
+  </header>
+
+  <!-- ============ PATTERN 1 : PICK AN APPROACH ============ -->
+  <section class="pat">
+    <div class="pat-head">
+      <div class="ix">PATTERN 01</div>
+      <h2>Pick an approach</h2>
+      <p>When the direction isn't decided yet, <code>workflow-plan</code> lays the
+        options side by side &mdash; each a real mockup with its trade-offs &mdash; so a
+        choice can be made by looking, not reading. Click a card.</p>
+    </div>
+    <div class="window">
+      <div class="bar"><span class="dots"><i></i><i></i><i></i></span>
+        <span class="title">approaches.html</span></div>
+      <div class="body">
+        <div class="kicker" style="margin-bottom:4px">Decision needed</div>
+        <h3 style="margin-bottom:16px">Three ways to debounce the search box</h3>
+        <div class="grid-3" id="appr">
+          <div class="approach" data-a="A">
+            <div class="hd"><strong>setTimeout</strong><span class="id">A</span></div>
+            <div class="code" style="font-size:11px;margin-bottom:12px"><pre><span class="k">let</span> t
+clearTimeout(t)
+t = setTimeout(run, <span class="s">300</span>)</pre></div>
+            <div class="pro">+ simplest, zero deps</div>
+            <div class="con">&minus; no in-flight cancel</div>
+          </div>
+          <div class="approach pick" data-a="B">
+            <div class="hd"><strong>AbortController</strong><span class="id">B</span></div>
+            <div class="code" style="font-size:11px;margin-bottom:12px"><pre><span class="k">const</span> c = <span class="k">new</span> AbortController()
+fetch(url, {<span class="s">signal</span>: c.signal})
+<span class="c">// c.abort() on retype</span></pre></div>
+            <div class="pro">+ aborts on retype</div>
+            <div class="pro">+ 0 dependencies</div>
+            <div class="con">&minus; a few more lines</div>
+          </div>
+          <div class="approach" data-a="C">
+            <div class="hd"><strong>rxjs</strong><span class="id">C</span></div>
+            <div class="code" style="font-size:11px;margin-bottom:12px"><pre>input$.pipe(
+  debounceTime(<span class="s">300</span>),
+  switchMap(query))</pre></div>
+            <div class="pro">+ battle-tested</div>
+            <div class="con">&minus; 12 kb dependency</div>
+          </div>
+        </div>
+        <div class="between" style="margin-top:16px">
+          <span class="small muted">Selected &mdash; <strong id="apprPick" style="color:var(--clay)">B &middot; AbortController</strong></span>
+          <button class="btn primary" id="apprGo">Use this approach &rarr;</button>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ============ PATTERN 2 : EXPLAINER / SPEC ============ -->
+  <section class="pat">
+    <div class="pat-head">
+      <div class="ix">PATTERN 02</div>
+      <h2>Spec &amp; explainer</h2>
+      <p>An implementation plan or a "how does this work" writeup &mdash; structured for
+        reading, not scrolling. Side TOC tracks where you are, steps collapse, a real
+        SVG diagram replaces the prose, and code lives in tabs.</p>
+    </div>
+    <div class="window">
+      <div class="bar"><span class="dots"><i></i><i></i><i></i></span>
+        <span class="title">plan.html</span></div>
+      <div class="body">
+        <div style="display:grid;grid-template-columns:160px 1fr;gap:26px">
+          <nav class="toc" id="toc">
+            <a href="#s-flow" class="on">Data flow</a>
+            <a href="#s-steps" class="sub">Steps</a>
+            <a href="#s-code">Config</a>
+          </nav>
+          <div>
+            <div class="kicker" style="margin-bottom:3px">Plan &middot; debounced search</div>
+            <h3 style="font-size:24px;margin-bottom:14px">Wire the search box to the API</h3>
+
+            <div id="s-flow" style="scroll-margin-top:20px">
+              <div class="kicker" style="margin-bottom:8px">Data flow</div>
+              <div class="card" style="padding:14px">
+                <svg viewBox="0 0 620 96" style="width:100%;height:auto"
+                  font-family="var(--mono)" font-size="12">
+                  <defs><marker id="ar" markerWidth="9" markerHeight="9" refX="7" refY="4"
+                    orient="auto"><path d="M0,0 L8,4 L0,8 z" fill="#8B8678"/></marker></defs>
+                  <g>
+                    <rect x="6" y="30" width="116" height="38" rx="8" fill="#FBF9F2" stroke="#E2DCCC"/>
+                    <text x="64" y="54" text-anchor="middle" fill="#1B1A17">input box</text>
+                    <line x1="124" y1="49" x2="166" y2="49" stroke="#8B8678" marker-end="url(#ar)"/>
+                    <rect x="170" y="30" width="124" height="38" rx="8" fill="#F2E0D6" stroke="#E0A98E"/>
+                    <text x="232" y="49" text-anchor="middle" fill="#9a4a2c">debounce 300ms</text>
+                    <text x="232" y="62" text-anchor="middle" fill="#9a4a2c" font-size="10">abort previous</text>
+                    <line x1="296" y1="49" x2="338" y2="49" stroke="#8B8678" marker-end="url(#ar)"/>
+                    <rect x="342" y="30" width="110" height="38" rx="8" fill="#FBF9F2" stroke="#E2DCCC"/>
+                    <text x="397" y="54" text-anchor="middle" fill="#1B1A17">/api/search</text>
+                    <line x1="454" y1="49" x2="496" y2="49" stroke="#8B8678" marker-end="url(#ar)"/>
+                    <rect x="500" y="30" width="114" height="38" rx="8" fill="#E4E8D8" stroke="#AEBE8E"/>
+                    <text x="557" y="54" text-anchor="middle" fill="#4d5f37">results list</text>
+                  </g>
+                </svg>
+              </div>
+            </div>
+
+            <div id="s-steps" style="margin-top:24px;scroll-margin-top:20px">
+              <div class="kicker" style="margin-bottom:8px">Steps</div>
+              <details class="step" open>
+                <summary><span class="ar mono">&#9656;</span><span class="num">01</span>
+                  Hold one controller per request<span class="loc">search.ts:14</span></summary>
+                <div class="inner">Keep a module-level <code>AbortController</code>. On each
+                  keystroke, call <code>.abort()</code> on the old one before creating the next
+                  &mdash; the previous fetch rejects quietly and never paints stale results.</div>
+              </details>
+              <details class="step">
+                <summary><span class="ar mono">&#9656;</span><span class="num">02</span>
+                  Debounce the keystroke<span class="loc">search.ts:21</span></summary>
+                <div class="inner">300&nbsp;ms timer, reset on every input. Only the trailing
+                  call survives.</div>
+              </details>
+              <details class="step">
+                <summary><span class="ar mono">&#9656;</span><span class="num">03</span>
+                  Swallow the abort error<span class="loc">search.ts:33</span></summary>
+                <div class="inner">A cancelled fetch throws <code>AbortError</code> &mdash;
+                  catch it and return, don't surface it to the user.</div>
+              </details>
+            </div>
+
+            <div id="s-code" style="margin-top:24px;scroll-margin-top:20px">
+              <div class="kicker" style="margin-bottom:8px">Config</div>
+              <div class="tabs" data-tabs="cfg">
+                <button class="on" data-t="t1">search.ts</button>
+                <button data-t="t2">limits.ts</button>
+              </div>
+              <div class="tabpane on" id="t1">
+                <div class="code"><pre><span class="k">let</span> ctrl<span class="c">;</span>
+<span class="k">async function</span> search(q) {
+  ctrl?.abort()<span class="c">;</span>
+  ctrl = <span class="k">new</span> AbortController()<span class="c">;</span>
+  <span class="k">try</span> {
+    <span class="k">const</span> r = <span class="k">await</span> fetch(<span class="s">`/api/search?q=${q}`</span>, {signal: ctrl.signal})<span class="c">;</span>
+    render(<span class="k">await</span> r.json())<span class="c">;</span>
+  } <span class="k">catch</span> (e) { <span class="k">if</span> (e.name !== <span class="s">'AbortError'</span>) <span class="k">throw</span> e<span class="c">;</span> }
+}</pre></div>
+              </div>
+              <div class="tabpane" id="t2">
+                <div class="code"><pre><span class="c"># limits.ts</span>
+debounceMs: <span class="s">300</span>
+minChars:   <span class="s">2</span>
+maxResults: <span class="s">20</span></pre></div>
+              </div>
+            </div>
+
+            <details class="fold">
+              <summary>Edge cases &amp; rejected alternatives</summary>
+              <div class="inner">Empty query short-circuits before fetch. Network failure
+                keeps the last good results and shows an inline retry. rxjs was rejected
+                on bundle size &mdash; see Pattern 01.</div>
+            </details>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ============ PATTERN 3 : INTERACTIVE PROTOTYPE ============ -->
+  <section class="pat">
+    <div class="pat-head">
+      <div class="ix">PATTERN 03</div>
+      <h2>Interactive prototype</h2>
+      <p>Some things can't be settled in text. <code>frontend-test</code> and
+        <code>workflow-plan</code> can hand back a real control panel &mdash; tune it live,
+        then copy the result straight back as a prompt for the agent.</p>
+    </div>
+    <div class="window">
+      <div class="bar"><span class="dots"><i></i><i></i><i></i></span>
+        <span class="title">result-card.html</span></div>
+      <div class="body">
+        <div class="grid-2" style="gap:28px">
+          <div>
+            <div class="kicker" style="margin-bottom:14px">Tune the result card</div>
+            <label class="between small" style="margin-bottom:5px">
+              <span class="muted">corner radius</span><strong id="vR" class="mono">14 px</strong></label>
+            <input type="range" class="range" id="cR" min="0" max="28" value="14"
+              style="margin-bottom:18px">
+            <label class="between small" style="margin-bottom:5px">
+              <span class="muted">lift on hover</span><strong id="vL" class="mono">6 px</strong></label>
+            <input type="range" class="range" id="cL" min="0" max="20" value="6"
+              style="margin-bottom:18px">
+            <label class="between small" style="margin-bottom:5px">
+              <span class="muted">accent strength</span><strong id="vA" class="mono">40 %</strong></label>
+            <input type="range" class="range" id="cA" min="0" max="100" value="40"
+              style="margin-bottom:18px">
+            <div class="between">
+              <span class="small muted">show price tag</span>
+              <input type="checkbox" class="tg" id="cP" checked></div>
+            <div class="divider"></div>
+            <button class="btn primary" id="copyP">Copy as prompt</button>
+            <span class="small muted" id="copyMsg" style="margin-left:10px"></span>
+          </div>
+          <div class="preview-box" id="prevWrap">
+            <div id="prevCard" style="background:#fff;border:1px solid var(--line);
+              padding:18px 20px;width:200px;transition:.18s">
+              <div style="font-family:var(--serif);font-size:18px;font-weight:600">Birch Stool</div>
+              <div class="small muted" style="margin:3px 0 12px">Solid oak &middot; in stock</div>
+              <div id="prevTag" class="badge hi" style="font-size:13px;padding:4px 9px">$ 148</div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ============ PATTERN 4 : WORK DASHBOARD ============ -->
+  <section class="pat">
+    <div class="pat-head">
+      <div class="ix">PATTERN 04</div>
+      <h2>Live work dashboard</h2>
+      <p><code>todos.html</code> is the one file the agents keep editing. It carries its
+        state as JSON so updates stay reliable &mdash; but it <em>renders</em> as a board you
+        can read in two seconds: who holds what, what's blocked, how far along.</p>
+    </div>
+    <div class="window">
+      <div class="bar"><span class="dots"><i></i><i></i><i></i></span>
+        <span class="title">todos.html</span></div>
+      <div class="body">
+        <div class="between" style="margin-bottom:16px">
+          <div><div class="kicker">Session</div>
+            <h3 style="font-size:20px">feature / debounced-search</h3></div>
+          <div class="row" style="gap:18px">
+            <div style="text-align:right"><div class="kicker">Progress</div>
+              <strong class="mono" style="font-size:15px">3 / 5 done</strong></div>
+            <svg width="46" height="46" viewBox="0 0 46 46">
+              <circle cx="23" cy="23" r="19" fill="none" stroke="#E3DACC" stroke-width="6"/>
+              <circle cx="23" cy="23" r="19" fill="none" stroke="#6F864F" stroke-width="6"
+                stroke-linecap="round" stroke-dasharray="119.4"
+                stroke-dashoffset="47.7" transform="rotate(-90 23 23)"/>
+            </svg>
+          </div>
+        </div>
+        <div class="board">
+          <div>
+            <div class="col-h"><span>To do</span><span>1</span></div>
+            <div class="tk">
+              <div class="row"><span class="pill todo">pending</span><span class="badge lo">low</span></div>
+              <div class="tkn">Empty-state illustration</div>
+              <div class="meta"><span class="tag">components/Empty.vue</span></div>
+            </div>
+          </div>
+          <div>
+            <div class="col-h"><span>In progress</span><span>1</span></div>
+            <div class="tk" style="border-color:var(--clay-line);box-shadow:0 0 0 3px var(--clay-soft)">
+              <div class="row"><span class="pill doing">in&nbsp;progress</span><span class="badge hi">high</span></div>
+              <div class="tkn">AbortController search wiring</div>
+              <div class="meta"><span class="tag">search.ts</span>
+                <span class="tag" style="color:var(--clay)">Teammate A</span></div>
+              <div class="bar-track" style="margin-top:9px"><div class="bar-fill" style="width:60%"></div></div>
+            </div>
+          </div>
+          <div>
+            <div class="col-h"><span>Done</span><span>3</span></div>
+            <div class="tk">
+              <div class="row"><span class="pill done">tested</span></div>
+              <div class="tkn">API endpoint /api/search</div>
+            </div>
+            <div class="tk">
+              <div class="row"><span class="pill done">tested</span></div>
+              <div class="tkn">Debounce timer + min-chars</div>
+            </div>
+            <div class="tk" style="opacity:.7">
+              <div class="row"><span class="pill done">tested</span></div>
+              <div class="tkn">Results list markup</div>
+            </div>
+          </div>
+        </div>
+        <details class="fold">
+          <summary>State JSON &amp; file locks</summary>
+          <div class="inner">The agent edits only the <code>&lt;script type="application/json"&gt;</code>
+            island; the board re-renders itself. <code>search.ts</code> is currently locked
+            by Teammate&nbsp;A since 14:02.</div>
+        </details>
+      </div>
+    </div>
+  </section>
+
+  <!-- ============ PATTERN 5 : TEST REPORT ============ -->
+  <section class="pat">
+    <div class="pat-head">
+      <div class="ix">PATTERN 05</div>
+      <h2>Outcome report</h2>
+      <p>A test run or session summary leads with the verdict. <code>frontend-test</code>
+        shows pass/fail at a glance and only spends space on what actually broke &mdash;
+        the clean checks stay collapsed.</p>
+    </div>
+    <div class="window">
+      <div class="bar"><span class="dots"><i></i><i></i><i></i></span>
+        <span class="title">test-report.html</span></div>
+      <div class="body">
+        <div class="grid-3" style="margin-bottom:18px">
+          <div class="stat good"><div class="l">Scenarios passed</div><div class="n">11 / 12</div></div>
+          <div class="stat bad"><div class="l">Console errors</div><div class="n">1</div></div>
+          <div class="stat key"><div class="l">Run time</div><div class="n">8.4s</div></div>
+        </div>
+        <div class="note danger" style="margin-bottom:10px">
+          <span class="ic">!</span>
+          <div><strong>Uncaught AbortError</strong> surfaced on fast retype.
+            <code>search.ts:33</code> &mdash; the catch block misses the
+            <code>AbortError</code> name check. Fix staged in TASK-004.</div>
+        </div>
+        <div class="note ok"><span class="ic">&check;</span>
+          <div>Debounce holds at 300&nbsp;ms; no duplicate requests across 40 keystrokes.</div>
+        </div>
+        <details class="fold">
+          <summary>11 passing scenarios</summary>
+          <div class="inner">
+            <table><tbody>
+              <tr><td>Type &amp; wait renders results</td><td style="text-align:right">
+                <span class="pill done">pass</span></td></tr>
+              <tr><td>Min 2 chars before fetch</td><td style="text-align:right">
+                <span class="pill done">pass</span></td></tr>
+              <tr><td>Empty query clears list</td><td style="text-align:right">
+                <span class="pill done">pass</span></td></tr>
+              <tr><td>Slow network keeps last results</td><td style="text-align:right">
+                <span class="pill done">pass</span></td></tr>
+            </tbody></table>
+            <div class="small muted" style="margin-top:8px">+ 7 more &mdash; all green.</div>
+          </div>
+        </details>
+      </div>
+    </div>
+  </section>
+
+  <!-- ============ CLOSING ============ -->
+  <section class="pat">
+    <div class="card" style="background:var(--card-2);padding:24px 26px">
+      <div class="kicker" style="color:var(--clay);margin-bottom:8px">How the skill decides</div>
+      <h3 style="margin-bottom:12px">One question, then the format follows</h3>
+      <table>
+        <thead><tr><th>The work is&hellip;</th><th>Artifact it builds</th></tr></thead>
+        <tbody>
+          <tr><td>A direction not yet chosen</td><td>Comparison grid &mdash; Pattern 01</td></tr>
+          <tr><td>An implementation plan or explainer</td><td>Spec with TOC + diagram &mdash; Pattern 02</td></tr>
+          <tr><td>A value better felt than described</td><td>Interactive prototype &mdash; Pattern 03</td></tr>
+          <tr><td>Work in flight across agents</td><td>Live board &mdash; Pattern 04</td></tr>
+          <tr><td>A test run or session wrap-up</td><td>Outcome report &mdash; Pattern 05</td></tr>
+        </tbody>
+      </table>
+      <p class="small muted" style="margin-top:14px">Nothing here is a fixed template.
+        The <code>html-doc</code> skill carries the design system and these patterns as
+        reference; the agent composes the page that fits. Every file is self-contained,
+        light, and opens in the browser the moment it's written.</p>
+    </div>
+  </section>
+
+</div>
+
+<script>
+// approach selection
+document.querySelectorAll('#appr .approach').forEach(c=>{
+  c.addEventListener('click',()=>{
+    document.querySelectorAll('#appr .approach').forEach(x=>x.classList.remove('pick'));
+    c.classList.add('pick');
+    const map={A:'A \u00b7 setTimeout',B:'B \u00b7 AbortController',C:'C \u00b7 rxjs'};
+    document.getElementById('apprPick').textContent=map[c.dataset.a];
+  });
+});
+document.getElementById('apprGo').addEventListener('click',function(){
+  this.textContent='Handed to workflow-work \u2713';
+  this.classList.remove('primary');this.classList.add('ghost');
+});
+
+// tabs
+document.querySelectorAll('[data-tabs]').forEach(t=>{
+  t.querySelectorAll('button').forEach(b=>{
+    b.addEventListener('click',()=>{
+      t.querySelectorAll('button').forEach(x=>x.classList.remove('on'));
+      b.classList.add('on');
+      ['t1','t2'].forEach(id=>document.getElementById(id).classList.remove('on'));
+      document.getElementById(b.dataset.t).classList.add('on');
+    });
+  });
+});
+
+// scroll-spy
+const links=[...document.querySelectorAll('#toc a')];
+const spy=new IntersectionObserver(es=>{
+  es.forEach(e=>{ if(e.isIntersecting){
+    links.forEach(l=>l.classList.toggle('on',l.getAttribute('href')==='#'+e.target.id));
+  }});
+},{rootMargin:'-10% 0px -70% 0px'});
+['s-flow','s-steps','s-code'].forEach(id=>{
+  const el=document.getElementById(id); if(el) spy.observe(el);
+});
+
+// prototype sliders
+const cR=document.getElementById('cR'),cL=document.getElementById('cL'),
+      cA=document.getElementById('cA'),cP=document.getElementById('cP'),
+      card=document.getElementById('prevCard'),tag=document.getElementById('prevTag');
+function paint(){
+  document.getElementById('vR').textContent=cR.value+' px';
+  document.getElementById('vL').textContent=cL.value+' px';
+  document.getElementById('vA').textContent=cA.value+' %';
+  card.style.borderRadius=cR.value+'px';
+  const a=cA.value/100;
+  tag.style.background='rgba(200,98,62,'+(0.12+a*0.88)+')';
+  tag.style.color=a>0.4?'#fff':'#C8623E';
+  tag.style.display=cP.checked?'inline-block':'none';
+}
+[cR,cL,cA].forEach(s=>s.addEventListener('input',paint));
+cP.addEventListener('change',paint);
+card.addEventListener('mouseenter',()=>card.style.transform='translateY(-'+cL.value+'px)');
+card.addEventListener('mouseleave',()=>card.style.transform='translateY(0)');
+paint();
+document.getElementById('copyP').addEventListener('click',function(){
+  const txt='Apply to ResultCard.vue \u2014 radius:'+cR.value+'px, hover-lift:'+cL.value
+    +'px, accent:'+cA.value+'%, priceTag:'+cP.checked+'.';
+  const done=()=>{document.getElementById('copyMsg').textContent='copied \u2192 paste into Claude Code';};
+  if(navigator.clipboard){navigator.clipboard.writeText(txt).then(done,done);}else done();
+});
+</script>
+</body>
+</html>

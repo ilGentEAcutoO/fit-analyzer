@@ -1,0 +1,668 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>fit-analyzer — plan</title>
+<style>/* Birchline — inlined */
+*{box-sizing:border-box;margin:0;padding:0}
+:root{
+  --paper:#F4F1E8;--paper-2:#EDE9DC;--card:#FFFFFF;--card-2:#FBF9F2;
+  --chrome:#E9E4D6;--line:#E2DCCC;--line-2:#D4CCB8;
+  --ink:#1B1A17;--ink-2:#55514A;--ink-3:#8B8678;--ink-4:#A8A395;
+  --clay:#C8623E;--clay-soft:#F2E0D6;--clay-line:#E0A98E;
+  --olive:#6F864F;--olive-soft:#E4E8D8;--olive-line:#AEBE8E;
+  --sky:#5E80A6;--sky-soft:#DCE4ED;--gold:#B98828;--gold-soft:#F1E6CC;
+  --red:#B4452F;--red-soft:#F2DDD7;--oat:#E3DACC;
+  --dark:#1F1E1B;--dark-2:#2A2925;--dark-ink:#E9E5DA;--dark-dim:#8D887B;
+  --serif:'Iowan Old Style','Palatino Linotype',Palatino,'Hoefler Text',Georgia,serif;
+  --sans:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,'Helvetica Neue',Arial,sans-serif;
+  --mono:'SF Mono',ui-monospace,'JetBrains Mono',Menlo,Consolas,monospace;
+  --r:14px;--r-s:9px;
+  --shadow:0 1px 2px rgba(31,30,27,.05),0 10px 30px -12px rgba(31,30,27,.16);
+  --shadow-s:0 1px 2px rgba(31,30,27,.06),0 4px 12px -6px rgba(31,30,27,.12);
+  color-scheme:light;
+}
+html,body{background:var(--paper)} html{scroll-behavior:smooth;scroll-padding-top:24px}
+body{font-family:var(--sans);color:var(--ink);line-height:1.62;font-size:15px;-webkit-font-smoothing:antialiased}
+.kicker{font-family:var(--mono);font-size:11.5px;font-weight:600;letter-spacing:.16em;text-transform:uppercase;color:var(--ink-3)}
+.display{font-family:var(--serif);font-weight:600;letter-spacing:-.015em;line-height:1.12;font-size:clamp(28px,4.4vw,42px)}
+h1,h2,h3{font-family:var(--serif);font-weight:600;letter-spacing:-.01em;line-height:1.2}
+h2{font-size:26px;margin:0 0 14px} h3{font-size:18px;margin:22px 0 8px}
+.lead{font-size:17px;color:var(--ink-2);line-height:1.6}
+.mono{font-family:var(--mono)}
+a{color:var(--clay);text-decoration:none;border-bottom:1px solid var(--clay-line)}
+code{font-family:var(--mono);font-size:.9em;background:var(--paper-2);padding:.1em .38em;border-radius:5px;color:var(--ink)}
+.window{background:var(--card);border:1px solid var(--line);border-radius:var(--r);box-shadow:var(--shadow);overflow:hidden}
+.window>.bar{background:var(--chrome);border-bottom:1px solid var(--line);padding:13px 16px;display:flex;align-items:center;gap:8px;position:relative}
+.window>.bar .dots{display:flex;gap:7px}
+.window>.bar .dots i{width:11px;height:11px;border-radius:50%;background:#CFC8B6;display:block}
+.window>.bar .title{position:absolute;left:0;right:0;text-align:center;font-family:var(--mono);font-size:12.5px;color:var(--ink-3);pointer-events:none}
+.window>.body{padding:28px 30px}
+.card{background:var(--card);border:1px solid var(--line);border-radius:var(--r);padding:20px 22px;box-shadow:var(--shadow-s)}
+.pill{display:inline-flex;align-items:center;gap:5px;font-family:var(--mono);font-size:11px;font-weight:600;letter-spacing:.04em;padding:3px 9px;border-radius:20px;text-transform:uppercase}
+.pill::before{content:"";width:6px;height:6px;border-radius:50%;background:currentColor;opacity:.9}
+.pill.todo{background:var(--paper-2);color:var(--ink-3)} .pill.doing{background:var(--sky-soft);color:var(--sky)}
+.pill.impl{background:var(--gold-soft);color:var(--gold)} .pill.done{background:var(--olive-soft);color:var(--olive)}
+.pill.block{background:var(--red-soft);color:var(--red)}
+.tag{display:inline-block;font-family:var(--mono);font-size:11px;color:var(--ink-2);background:var(--card-2);border:1px solid var(--line);border-radius:6px;padding:2px 7px}
+.badge{font-family:var(--mono);font-size:10.5px;font-weight:700;letter-spacing:.05em;text-transform:uppercase;padding:2px 7px;border-radius:5px}
+.badge.hi{background:var(--clay-soft);color:var(--clay)} .badge.mid{background:var(--gold-soft);color:var(--gold)} .badge.lo{background:var(--paper-2);color:var(--ink-3)}
+.stat{background:var(--card-2);border:1px solid var(--line);border-radius:var(--r-s);padding:14px 16px}
+.stat .n{font-family:var(--serif);font-size:30px;font-weight:600;line-height:1;letter-spacing:-.02em}
+.stat .l{font-family:var(--mono);font-size:11px;letter-spacing:.08em;text-transform:uppercase;color:var(--ink-3);margin-bottom:6px}
+.stat.good .n{color:var(--olive)} .stat.bad .n{color:var(--red)} .stat.key .n{color:var(--clay)}
+.note{border-radius:var(--r-s);padding:13px 15px;font-size:14px;border:1px solid;display:flex;gap:10px;margin:10px 0}
+.note .ic{font-family:var(--mono);font-weight:700;flex:none}
+.note.info{background:var(--sky-soft);border-color:#C3D0DE;color:#3f5a76}
+.note.ok{background:var(--olive-soft);border-color:var(--olive-line);color:#4d5f37}
+.note.warn{background:var(--clay-soft);border-color:var(--clay-line);color:#9a4a2c}
+.note.danger{background:var(--red-soft);border-color:#DDB3A8;color:#8d3322}
+.code{background:var(--dark);border-radius:var(--r-s);overflow:hidden;font-family:var(--mono);font-size:12.5px;line-height:1.7;margin:10px 0}
+.code .top{background:var(--dark-2);padding:8px 14px;display:flex;justify-content:space-between;color:var(--dark-dim);font-size:11.5px;border-bottom:1px solid #000}
+.code pre{padding:14px 16px;color:var(--dark-ink);overflow-x:auto}
+.code .c{color:var(--dark-dim)} .code .k{color:#D9A05B} .code .s{color:#9BB06E}
+.code .add{color:#9BB06E;background:rgba(155,176,110,.13);display:block;padding-left:6px;margin-left:-6px}
+.code .del{color:#D98A6E;background:rgba(217,138,110,.15);display:block;padding-left:6px;margin-left:-6px;text-decoration:line-through}
+.step{border:1px solid var(--line);border-radius:var(--r-s);margin-bottom:8px;background:var(--card);overflow:hidden}
+.step[open]{border-color:var(--clay-line);box-shadow:0 0 0 3px var(--clay-soft)}
+.step>summary{list-style:none;cursor:pointer;padding:13px 16px;display:flex;align-items:center;gap:11px;font-family:var(--serif);font-size:17px;font-weight:600}
+.step>summary::-webkit-details-marker{display:none}
+.step>summary .ar{font-family:var(--mono);color:var(--clay);font-size:12px;transition:transform .15s}
+.step[open]>summary .ar{transform:rotate(90deg)}
+.step>summary .num{font-family:var(--mono);font-size:13px;color:var(--ink-3);font-weight:600}
+.step>summary .loc{margin-left:auto;font-family:var(--mono);font-size:11.5px;color:var(--ink-4);font-weight:400}
+.step .inner{padding:2px 16px 16px 41px;color:var(--ink-2);font-size:14px}
+.fold{border-top:1px solid var(--line);margin-top:14px;padding-top:12px}
+.fold>summary{list-style:none;cursor:pointer;font-family:var(--mono);font-size:11.5px;letter-spacing:.06em;text-transform:uppercase;color:var(--ink-3)}
+.fold>summary::-webkit-details-marker{display:none}
+.fold>summary::before{content:"+ ";color:var(--clay)}
+.fold[open]>summary::before{content:"− "}
+.fold .inner{padding-top:10px;font-size:13.5px;color:var(--ink-2)}
+.tabs{display:flex;gap:2px;border-bottom:1px solid var(--line);margin-top:8px}
+.tabs button{font-family:var(--mono);font-size:12.5px;cursor:pointer;background:none;border:none;padding:8px 13px;color:var(--ink-3);border-bottom:2px solid transparent;margin-bottom:-1px}
+.tabs button.on{color:var(--ink);border-bottom-color:var(--clay);font-weight:600}
+.tabpane{display:none} .tabpane.on{display:block}
+.toc{position:sticky;top:20px;font-family:var(--mono);font-size:13px;border-left:2px solid var(--line);align-self:start}
+.toc .lbl{padding:0 0 8px 14px;color:var(--ink-4);font-size:10.5px;letter-spacing:.16em}
+.toc a{display:block;padding:5px 0 5px 14px;color:var(--ink-3);border:none;margin-left:-2px;border-left:2px solid transparent}
+.toc a.on{color:var(--ink);border-left-color:var(--clay);font-weight:600}
+.grid-2{display:grid;grid-template-columns:1fr 1fr;gap:16px}
+.grid-3{display:grid;grid-template-columns:repeat(3,1fr);gap:14px}
+.shell{display:grid;grid-template-columns:170px 1fr;gap:36px;max-width:1180px;margin:0 auto;padding:24px 24px 80px}
+.section{padding:30px 0;border-top:1px solid var(--line)}
+.section:first-of-type{border-top:none;padding-top:0}
+.sec-no{font-family:var(--mono);font-size:12px;color:var(--ink-4);letter-spacing:.1em;margin-bottom:6px}
+.diagram{border:1px solid var(--line);background:var(--card-2);border-radius:var(--r-s);padding:18px;margin:10px 0}
+.diagram svg{width:100%;height:auto;display:block}
+table{width:100%;border-collapse:collapse;font-size:13.5px;margin:10px 0}
+th{font-family:var(--mono);font-size:11px;letter-spacing:.06em;text-transform:uppercase;color:var(--ink-3);text-align:left;padding:8px 10px;border-bottom:1px solid var(--line-2)}
+td{padding:9px 10px;border-bottom:1px solid var(--line);color:var(--ink-2);vertical-align:top}
+tr:last-child td{border-bottom:none}
+.muted{color:var(--ink-3)} .small{font-size:13px}
+hr{border:none;border-top:1px solid var(--line);margin:18px 0}
+ul{padding-left:18px;margin:8px 0} li{margin:4px 0}
+.streams{display:grid;grid-template-columns:1fr 1fr 1fr;gap:12px;margin:14px 0}
+.stream{border:1px solid var(--line);border-radius:var(--r-s);padding:12px 14px;background:var(--card-2)}
+.stream .h{font-family:var(--mono);font-size:11px;letter-spacing:.1em;color:var(--ink-3);text-transform:uppercase;margin-bottom:6px}
+.stream.A{border-left:3px solid var(--clay)} .stream.B{border-left:3px solid var(--sky)} .stream.C{border-left:3px solid var(--olive)}
+.stream ul{padding-left:16px;font-size:13px} .stream li{color:var(--ink-2)}
+.bigq{font-family:var(--serif);font-size:17px;font-style:italic;color:var(--ink-2);margin:6px 0 12px}
+@media(max-width:900px){.shell{grid-template-columns:1fr;padding:18px 14px}.toc{position:static;border-left:none;border-top:2px solid var(--line);padding-top:12px}.grid-2,.grid-3,.streams{grid-template-columns:1fr}}
+</style>
+</head>
+<body>
+<div class="shell">
+
+  <!-- ============ TOC ============ -->
+  <nav class="toc" id="toc">
+    <div class="lbl">PLAN</div>
+    <a href="#mission">00 &nbsp;Mission</a>
+    <a href="#arch">01 &nbsp;Architecture</a>
+    <a href="#fixes">02 &nbsp;Spec deviations</a>
+    <a href="#streams">03 &nbsp;Build streams</a>
+    <a href="#security">04 &nbsp;Security</a>
+    <a href="#tests">05 &nbsp;Test harness</a>
+    <a href="#risks">06 &nbsp;Risks</a>
+    <a href="#tasks">07 &nbsp;Task summary</a>
+  </nav>
+
+  <!-- ============ BODY ============ -->
+  <div>
+  <div class="window">
+    <div class="bar"><span class="dots"><i></i><i></i><i></i></span><span class="title">plan.html &middot; fit-analyzer &middot; 2026-05-26</span></div>
+    <div class="body">
+
+    <!-- ============ 00 MISSION ============ -->
+    <section class="section" id="mission" style="border-top:none;padding-top:0">
+      <div class="sec-no">§ 00 &middot; MISSION</div>
+      <h1 class="display">Build the spec — <em style="color:var(--clay)">in a day</em>.</h1>
+      <p class="lead" style="margin-top:10px">Execute <code>instruction/fit-analyzer-spec.html</code> end-to-end: React frontend, Cloudflare Worker API with rate limiting, Gemini structured-output call, live URL. Pragmatic test harness. Strict MVP — no stretch.</p>
+
+      <div class="grid-3" style="margin-top:18px">
+        <div class="stat"><div class="l">Budget</div><div class="n">~1 day</div></div>
+        <div class="stat key"><div class="l">Tasks</div><div class="n">17</div></div>
+        <div class="stat good"><div class="l">Streams</div><div class="n">3</div></div>
+      </div>
+
+      <div class="note info" style="margin-top:16px">
+        <span class="ic">i</span>
+        <div><strong>Source of truth:</strong> the spec is frozen. This plan adds <em>execution order</em>, <em>parallel structure</em>, <em>test specs</em>, and the <a href="#fixes">three deviations</a> needed because library docs have moved since the spec was written. When spec and plan disagree, plan wins for the three flagged deviations only — spec wins on every other detail.</div>
+      </div>
+    </section>
+
+    <!-- ============ 01 ARCHITECTURE ============ -->
+    <section class="section" id="arch">
+      <div class="sec-no">§ 01 &middot; ARCHITECTURE</div>
+      <h2>One static frontend, one Worker, one LLM call</h2>
+      <p class="muted">Stateless. No DB. The Worker is the only thing that ever sees the API key.</p>
+
+      <div class="diagram">
+        <svg viewBox="0 0 900 280" xmlns="http://www.w3.org/2000/svg" font-family="SF Mono, ui-monospace, monospace">
+          <defs>
+            <marker id="ar-sky" markerWidth="9" markerHeight="9" refX="7" refY="4.5" orient="auto">
+              <path d="M0,0 L9,4.5 L0,9 Z" fill="#5E80A6"/>
+            </marker>
+            <marker id="ar-olive" markerWidth="9" markerHeight="9" refX="7" refY="4.5" orient="auto">
+              <path d="M0,0 L9,4.5 L0,9 Z" fill="#6F864F"/>
+            </marker>
+          </defs>
+
+          <!-- Browser -->
+          <rect x="20" y="40" width="240" height="200" rx="12" fill="#FFFFFF" stroke="#C8623E" stroke-width="1.4"/>
+          <text x="38" y="65" fill="#C8623E" font-size="11" font-weight="700" letter-spacing="1.5">BROWSER · REACT + VITE</text>
+          <rect x="38" y="78" width="204" height="38" rx="6" fill="#FBF9F2" stroke="#E2DCCC"/>
+          <text x="50" y="96" fill="#1B1A17" font-size="11.5">1 · drop resume PDF</text>
+          <text x="50" y="109" fill="#8B8678" font-size="10">pdfjs-dist v5 (client-side)</text>
+          <rect x="38" y="124" width="204" height="34" rx="6" fill="#FBF9F2" stroke="#E2DCCC"/>
+          <text x="50" y="141" fill="#1B1A17" font-size="11.5">2 · paste JD text</text>
+          <text x="50" y="153" fill="#8B8678" font-size="10">textarea</text>
+          <rect x="38" y="166" width="204" height="56" rx="6" fill="#FBF9F2" stroke="#E2DCCC"/>
+          <text x="50" y="184" fill="#1B1A17" font-size="11.5">4 · render fit report</text>
+          <text x="50" y="198" fill="#8B8678" font-size="10">gauge · 4 bars · gaps · fixes</text>
+          <text x="50" y="212" fill="#8B8678" font-size="10">states: idle/load/done/err/429</text>
+
+          <!-- Worker -->
+          <rect x="340" y="60" width="230" height="160" rx="12" fill="#FFFFFF" stroke="#5E80A6" stroke-width="1.4"/>
+          <text x="358" y="85" fill="#5E80A6" font-size="11" font-weight="700" letter-spacing="1.5">CLOUDFLARE WORKER</text>
+          <text x="358" y="106" fill="#1B1A17" font-size="11.5" font-weight="600">POST /api/analyze</text>
+          <text x="358" y="125" fill="#8B8678" font-size="10">→ rate-limit by IP (10/min)</text>
+          <text x="358" y="140" fill="#8B8678" font-size="10">→ validate (≤ 15 000 chars)</text>
+          <text x="358" y="155" fill="#8B8678" font-size="10">→ call Gemini w/ schema</text>
+          <text x="358" y="170" fill="#8B8678" font-size="10">→ defensive JSON.parse</text>
+          <text x="358" y="185" fill="#8B8678" font-size="10">→ 200 / 400 / 429 / 502</text>
+          <text x="358" y="205" fill="#C8623E" font-size="10" font-weight="600">holds GEMINI_API_KEY (secret)</text>
+
+          <!-- Gemini -->
+          <rect x="650" y="68" width="230" height="144" rx="12" fill="#FFFFFF" stroke="#B98828" stroke-width="1.4"/>
+          <text x="668" y="93" fill="#B98828" font-size="11" font-weight="700" letter-spacing="1.5">GOOGLE GEMINI</text>
+          <text x="668" y="114" fill="#1B1A17" font-size="11.5" font-weight="600">gemini-3.1-flash-lite</text>
+          <text x="668" y="134" fill="#8B8678" font-size="10">system_instruction · analyst</text>
+          <text x="668" y="149" fill="#8B8678" font-size="10">responseMimeType: json</text>
+          <text x="668" y="164" fill="#8B8678" font-size="10">responseSchema locks shape</text>
+          <text x="668" y="184" fill="#8B8678" font-size="10">temperature: 0.2</text>
+
+          <!-- Arrows -->
+          <line x1="260" y1="130" x2="335" y2="130" stroke="#5E80A6" stroke-width="1.6" marker-end="url(#ar-sky)"/>
+          <text x="266" y="122" fill="#5E80A6" font-size="9" font-weight="600">3 · {resume, jd}</text>
+          <line x1="570" y1="130" x2="645" y2="130" stroke="#5E80A6" stroke-width="1.6" marker-end="url(#ar-sky)"/>
+          <line x1="645" y1="152" x2="572" y2="152" stroke="#6F864F" stroke-width="1.6" marker-end="url(#ar-olive)" stroke-dasharray="4 3"/>
+          <text x="588" y="172" fill="#6F864F" font-size="9" font-weight="600">FitReport JSON</text>
+          <line x1="335" y1="152" x2="262" y2="152" stroke="#6F864F" stroke-width="1.6" marker-end="url(#ar-olive)" stroke-dasharray="4 3"/>
+        </svg>
+      </div>
+      <p class="small muted" style="margin-top:4px">Solid arrows = request &middot; dashed = response. The browser never holds the key, and Gemini never sees the user's IP — only the Worker does. That's the abuse-prevention seam.</p>
+    </section>
+
+    <!-- ============ 02 SPEC DEVIATIONS ============ -->
+    <section class="section" id="fixes">
+      <div class="sec-no">§ 02 &middot; SPEC DEVIATIONS</div>
+      <h2>Three corrections from research</h2>
+      <p class="muted">Library docs verified 2026-05-26. The spec was written before these moved.</p>
+
+      <div class="note warn" style="margin-top:6px">
+        <span class="ic">!</span>
+        <div><strong>Why this section exists:</strong> the implementing agent will be reading the spec alongside this plan. These are the only places the plan overrides the spec — anywhere else, the spec wins.</div>
+      </div>
+
+      <details class="step" open>
+        <summary><span class="ar">▶</span><span class="num">02.1</span> Rate-limit binding TOML <span class="loc">worker/wrangler.toml</span></summary>
+        <div class="inner">
+          <p>Spec uses <code>binding = "RATE_LIMITER"</code> and an inline-table <code>simple = { limit = 10, period = 60 }</code>. Current Cloudflare docs use <code>name</code> and a <code>[ratelimits.simple]</code> sub-table. Requires <strong>Wrangler ≥ 4.36.0</strong>. No <code>compatibility_flags</code> needed.</p>
+          <div class="code">
+            <div class="top"><span>worker/wrangler.toml</span><span>diff</span></div>
+<pre><span class="c"># before — from spec §06</span>
+<span class="del">[[ratelimits]]</span>
+<span class="del">binding      = "RATE_LIMITER"</span>
+<span class="del">namespace_id = "1001"</span>
+<span class="del">simple       = { limit = 10, period = 60 }</span>
+
+<span class="c"># after — verified against current CF docs</span>
+<span class="add">[[ratelimits]]</span>
+<span class="add">name         = "RATE_LIMITER"</span>
+<span class="add">namespace_id = "1001"</span>
+<span class="add">  [ratelimits.simple]</span>
+<span class="add">  limit  = 10</span>
+<span class="add">  period = 60</span></pre>
+          </div>
+          <p class="small muted">Runtime call shape is unchanged: <code>const { success } = await env.RATE_LIMITER.limit({ key: ip })</code>.</p>
+        </div>
+      </details>
+
+      <details class="step">
+        <summary><span class="ar">▶</span><span class="num">02.2</span> pdfjs-dist worker import under Vite <span class="loc">web/src/lib/pdf.ts</span></summary>
+        <div class="inner">
+          <p>Pin <code>pdfjs-dist@^5</code>. Vite needs the worker URL emitted at build time — use the <code>?url</code> suffix import. Set <code>workerSrc</code> <em>in the same module that uses pdfjs</em> (module load order has burned others on this).</p>
+          <div class="code">
+            <div class="top"><span>web/src/lib/pdf.ts</span><span>canonical Vite + pdfjs v5</span></div>
+<pre><span class="k">import</span> * <span class="k">as</span> pdfjsLib <span class="k">from</span> <span class="s">'pdfjs-dist'</span>;
+<span class="k">import</span> workerUrl <span class="k">from</span> <span class="s">'pdfjs-dist/build/pdf.worker.min.mjs?url'</span>;
+pdfjsLib.GlobalWorkerOptions.workerSrc = workerUrl;</pre>
+          </div>
+          <p class="small muted">No CDN, no `?worker` — Vite emits the file with a hash and serves it same-origin.</p>
+        </div>
+      </details>
+
+      <details class="step">
+        <summary><span class="ar">▶</span><span class="num">02.3</span> Pages deploy flag <span class="loc">terminal</span></summary>
+        <div class="inner">
+          <p>First non-interactive Pages deploy needs <code>--project-name</code> or Wrangler will prompt and fail in CI / a fresh shell.</p>
+          <div class="code">
+            <div class="top"><span>terminal</span><span>first deploy</span></div>
+<pre><span class="c"># confirmed current</span>
+npx wrangler pages deploy ./dist <span class="k">--project-name=fit-analyzer</span></pre>
+          </div>
+          <p class="small muted">Old <code>wrangler pages publish</code> is a deprecated alias — works, but use the modern verb in scripts.</p>
+        </div>
+      </details>
+
+      <details class="fold">
+        <summary>Things research confirmed, no change needed</summary>
+        <div class="inner">
+          <ul>
+            <li><code>gemini-3.1-flash-lite</code> and <code>gemini-3.5-flash</code> are both stable IDs — no <code>-preview</code> suffix.</li>
+            <li><code>system_instruction</code> in snake_case is the documented form on v1beta (camelCase also works; stick with the spec's snake_case for clarity).</li>
+            <li><code>x-goog-api-key</code> header (not URL <code>?key=</code>) is current best practice and matches the spec's security rule.</li>
+            <li>FitReport contract (spec §04) — no library reason to touch it.</li>
+          </ul>
+        </div>
+      </details>
+    </section>
+
+    <!-- ============ 03 STREAMS ============ -->
+    <section class="section" id="streams">
+      <div class="sec-no">§ 03 &middot; BUILD STREAMS</div>
+      <h2>Three streams &middot; A&nbsp;+&nbsp;B parallel, C serial</h2>
+      <p class="bigq">"Frontend cannot start until Worker is done." — that's the trap. The FitReport contract is frozen, so the frontend can build against the typed contract from minute one with a stub. We split into parallel streams.</p>
+
+      <div class="streams">
+        <div class="stream A">
+          <div class="h">Stream A &middot; Worker</div>
+          <ul>
+            <li>scaffold + wrangler.toml</li>
+            <li>prompt.ts (system + schema)</li>
+            <li>index.ts handler</li>
+            <li>unit tests</li>
+            <li>curl smoke + prompt tune</li>
+          </ul>
+        </div>
+        <div class="stream B">
+          <div class="h">Stream B &middot; Frontend</div>
+          <ul>
+            <li>scaffold (Vite/React/TS/Tailwind)</li>
+            <li>types.ts mirroring §04</li>
+            <li>lib/pdf.ts, lib/api.ts</li>
+            <li>5 components</li>
+            <li>App state machine</li>
+          </ul>
+        </div>
+        <div class="stream C">
+          <div class="h">Stream C &middot; Ship</div>
+          <ul>
+            <li>local integration + state QA</li>
+            <li>Playwright happy-path E2E</li>
+            <li>wrangler deploy (worker)</li>
+            <li>pages deploy (frontend)</li>
+            <li>CORS lock + AI Studio restrict</li>
+            <li>README + live smoke</li>
+          </ul>
+        </div>
+      </div>
+
+      <h3>Step detail (collapsed)</h3>
+
+      <details class="step">
+        <summary><span class="ar">▶</span><span class="num">A.1</span> Scaffold Worker <span class="loc">~20 min</span></summary>
+        <div class="inner">
+          <p><code>npm create cloudflare@latest worker --type=hello-world --ts --git=no</code>, then trim to one handler. Author <code>wrangler.toml</code> with the <strong>corrected rate-limit syntax (§02.1)</strong>, set <code>compatibility_date</code> to today, and declare <code>GEMINI_API_KEY</code> + <code>ALLOW_ORIGIN</code> as expected vars. Create <code>.dev.vars</code> with the local key and <strong>verify <code>.gitignore</code> lists it before any commit</strong>.</p>
+        </div>
+      </details>
+
+      <details class="step">
+        <summary><span class="ar">▶</span><span class="num">A.2</span> prompt.ts — frozen contract surface <span class="loc">worker/src/prompt.ts</span></summary>
+        <div class="inner">
+          <p>Export three things: <code>SYSTEM_PROMPT</code> (spec §04 verbatim, tune later), <code>buildUserTurn(jd, resume)</code> returning a clearly labelled prompt string, and <code>FIT_REPORT_SCHEMA</code> matching the spec's schema with <code>required:</code> populated. Schema uses <code>type: "OBJECT"</code> (uppercase) per current Gemini docs.</p>
+        </div>
+      </details>
+
+      <details class="step">
+        <summary><span class="ar">▶</span><span class="num">A.3</span> index.ts — the handler <span class="loc">worker/src/index.ts</span></summary>
+        <div class="inner">
+          <p>Order is fixed: CORS preflight → method check → rate-limit (<code>CF-Connecting-IP</code>) → JSON-body parse → length validation → Gemini fetch with header auth → defensive <code>JSON.parse</code> → return. Errors return a short opaque code only — <strong>never echo upstream body</strong>.</p>
+        </div>
+      </details>
+
+      <details class="step">
+        <summary><span class="ar">▶</span><span class="num">A.4</span> Unit tests <span class="loc">worker/src/index.test.ts &middot; vitest + miniflare</span></summary>
+        <div class="inner">
+          <p>Three tests are non-negotiable: (1) empty body → 400; (2) over-15000-char body → 400; (3) when Gemini returns invalid JSON → 502 with <code>{"error":"parse"}</code>, not a crash. Stub <code>fetch</code> to control the upstream response. Optional: 4th test verifying the rate-limit branch with a stubbed <code>env.RATE_LIMITER</code>.</p>
+        </div>
+      </details>
+
+      <details class="step">
+        <summary><span class="ar">▶</span><span class="num">A.5</span> Curl smoke + prompt tune <span class="loc">~30 min</span></summary>
+        <div class="inner">
+          <p>Run <code>wrangler dev</code> with <code>.dev.vars</code>. Send 3 realistic resume/JD pairs via curl — one strong match, one moderate, one weak. The verdict bands (strong ≥75 / moderate 50-74 / weak &lt;50) should land naturally; if every output reads as "moderate", tighten the prompt's "be honest, do not inflate" line. Also fire 12 requests in 10 s from one IP → confirm 429 trips around request 11.</p>
+        </div>
+      </details>
+
+      <details class="step">
+        <summary><span class="ar">▶</span><span class="num">B.1</span> Scaffold web/ <span class="loc">~15 min</span></summary>
+        <div class="inner">
+          <p><code>npm create vite@latest web -- --template react-ts</code>, add Tailwind via <code>npx tailwindcss init -p</code>, wire <code>index.css</code> with the three Tailwind directives. Add <code>VITE_API_BASE</code> to <code>.env</code> defaulting to <code>http://127.0.0.1:8787</code> for local dev.</p>
+        </div>
+      </details>
+
+      <details class="step">
+        <summary><span class="ar">▶</span><span class="num">B.2</span> types.ts mirrors §04 <span class="loc">web/src/lib/types.ts</span></summary>
+        <div class="inner">
+          <p>Mirror the FitReport contract as TS types. The four dimension keys are a <code>readonly tuple</code> string-literal union — this is what catches a Worker drift later. Frontend builds against this from minute one with a stub <code>analyze()</code>.</p>
+        </div>
+      </details>
+
+      <details class="step">
+        <summary><span class="ar">▶</span><span class="num">B.3</span> lib/pdf.ts <span class="loc">web/src/lib/pdf.ts</span></summary>
+        <div class="inner">
+          <p>Use the <strong>§02.2 pattern</strong>. Export <code>extractTextFromPdf(file: File): Promise&lt;string&gt;</code>. Catch parse failures; return empty string on failure so the UI can surface "extraction returned no text — paste instead" rather than crashing.</p>
+        </div>
+      </details>
+
+      <details class="step">
+        <summary><span class="ar">▶</span><span class="num">B.4</span> lib/api.ts <span class="loc">web/src/lib/api.ts</span></summary>
+        <div class="inner">
+          <p>Single typed function <code>analyze(resume, jd): Promise&lt;Result&gt;</code> where <code>Result = {ok:true; data:FitReport} | {ok:false; kind:'rate_limited'|'bad_input'|'upstream'|'network'}</code>. Map <code>429</code> to <code>rate_limited</code>; everything else by status code. Single source for fetch errors.</p>
+        </div>
+      </details>
+
+      <details class="step">
+        <summary><span class="ar">▶</span><span class="num">B.5</span> Components <span class="loc">web/src/components/*</span></summary>
+        <div class="inner">
+          <p>Build in dependency order so each can render in isolation: <code>ScoreGauge</code> (conic gradient, colour from band) → <code>DimensionBar</code> → <code>FindingList</code> (strengths / gaps with severity pills / suggestions) → <code>ResultPanel</code> (composes the above + skeleton on loading) → <code>InputPanel</code> (dropzone + paste fallback + JD textarea + disabled-until-ready button).</p>
+        </div>
+      </details>
+
+      <details class="step">
+        <summary><span class="ar">▶</span><span class="num">B.6</span> App.tsx state machine <span class="loc">web/src/App.tsx</span></summary>
+        <div class="inner">
+          <p>Five UI states — model them with a discriminated union, not booleans: <code>{kind:'idle'} | {kind:'loading'} | {kind:'done', report} | {kind:'error', message} | {kind:'rateLimited'}</code>. Treat <code>rateLimited</code> as a distinct gentle state, not "error". Two-panel desktop, stacked mobile.</p>
+        </div>
+      </details>
+
+      <details class="step">
+        <summary><span class="ar">▶</span><span class="num">C.1</span> Local integration + state QA <span class="loc">frontend-test skill</span></summary>
+        <div class="inner">
+          <p>Run both <code>wrangler dev</code> and <code>vite dev</code> together. Click through all five states by hand: idle (button disabled) → loading (spinner) → done (report renders) → error (network kill via DevTools) → rateLimited (spam the button 12×). Use <code>frontend-test</code> skill for the run.</p>
+        </div>
+      </details>
+
+      <details class="step">
+        <summary><span class="ar">▶</span><span class="num">C.2</span> Playwright happy-path E2E <span class="loc">web/tests/happy.spec.ts</span></summary>
+        <div class="inner">
+          <p>One test: open the page, paste a stub JD, paste a stub resume (skip PDF — file upload via Playwright + pdfjs in test env is too brittle for a 1-day MVP), click Analyze with a <strong>mocked</strong> <code>/api/analyze</code> response, assert the gauge shows a number and all four dimension bars render. Playwright via the project's MCP if available; else <code>@playwright/test</code>.</p>
+        </div>
+      </details>
+
+      <details class="step">
+        <summary><span class="ar">▶</span><span class="num">C.3</span> Deploy Worker <span class="loc">deploy skill</span></summary>
+        <div class="inner">
+          <p><code>npx wrangler secret put GEMINI_API_KEY</code>, paste the user-supplied key, then <code>npx wrangler deploy</code>. Capture the <code>*.workers.dev</code> URL.</p>
+        </div>
+      </details>
+
+      <details class="step">
+        <summary><span class="ar">▶</span><span class="num">C.4</span> Deploy Pages <span class="loc">deploy skill</span></summary>
+        <div class="inner">
+          <p>Set <code>VITE_API_BASE</code> to the Worker URL, then <code>npm run build &amp;&amp; npx wrangler pages deploy ./dist --project-name=fit-analyzer</code> (§02.3). Capture the <code>*.pages.dev</code> URL.</p>
+        </div>
+      </details>
+
+      <details class="step">
+        <summary><span class="ar">▶</span><span class="num">C.5</span> Lock down <span class="loc">~10 min</span></summary>
+        <div class="inner">
+          <p>Three steps in this order: (1) <code>wrangler secret put ALLOW_ORIGIN</code> with the exact Pages URL; (2) in Google AI Studio, add an API restriction to the key — <em>Generative Language API only</em>; (3) confirm via DevTools that a request from <em>any other origin</em> is blocked by CORS. Without §C.5 the rate limit is the only defence — that's not enough.</p>
+        </div>
+      </details>
+
+      <details class="step">
+        <summary><span class="ar">▶</span><span class="num">C.6</span> README + live smoke <span class="loc">README.md</span></summary>
+        <div class="inner">
+          <p>README must let a stranger clone, run locally, and deploy. Include the live URL, a screenshot of the report, and the spec's §06 key-handling rules. Smoke-test the live URL on desktop and mobile (DevTools device emulation is fine for a 1-day MVP).</p>
+        </div>
+      </details>
+    </section>
+
+    <!-- ============ 04 SECURITY ============ -->
+    <section class="section" id="security">
+      <div class="sec-no">§ 04 &middot; SECURITY</div>
+      <h2>Concrete attack vectors → mitigations</h2>
+      <div class="note danger" style="margin:6px 0 14px">
+        <span class="ic">!</span>
+        <div>The repo is public. A leaked Gemini key is a draining attack. These mitigations are non-negotiable per spec §06.</div>
+      </div>
+
+      <table>
+        <thead><tr><th style="width:42%">Attack vector</th><th>Mitigation</th></tr></thead>
+        <tbody>
+          <tr>
+            <td>Key in client bundle — attacker grabs from JS source.</td>
+            <td>Worker proxy; frontend never sees the key. Verified by <code>grep -ri "AIza" web/dist</code> returning zero hits after build.</td>
+          </tr>
+          <tr>
+            <td>Key in git history — committed once, forever in <code>git log -p</code>.</td>
+            <td><code>.dev.vars</code> in <code>.gitignore</code> <strong>before the first commit</strong>. Pre-deploy: <code>git log -p | grep -i "AIza"</code> returns nothing.</td>
+          </tr>
+          <tr>
+            <td>Key in URL — leaks via referrer, browser history, server logs.</td>
+            <td>Header auth (<code>x-goog-api-key</code>), never <code>?key=</code>.</td>
+          </tr>
+          <tr>
+            <td>Quota drain — attacker hammers <code>/api/analyze</code>.</td>
+            <td>10 req/min/IP via CF rate-limit binding. <code>CF-Connecting-IP</code> as the key (Cloudflare-trusted, can't be spoofed at the edge).</td>
+          </tr>
+          <tr>
+            <td>Cross-origin call — attacker hosts a page that calls our Worker.</td>
+            <td><code>ALLOW_ORIGIN</code> locked to the live Pages URL after §C.5. <code>OPTIONS</code> preflight is the gate.</td>
+          </tr>
+          <tr>
+            <td>Wrong API surface — leaked key abused on other Google APIs.</td>
+            <td>API restriction in AI Studio: <em>Generative Language API</em> only.</td>
+          </tr>
+          <tr>
+            <td>Upstream error leaks — Gemini error body returned to UI.</td>
+            <td>Worker returns short opaque error codes only (<code>parse</code>, <code>upstream</code>, <code>rate_limited</code>). Never echo upstream JSON.</td>
+          </tr>
+          <tr>
+            <td>Oversized prompt — DOS via 1 MB request bodies.</td>
+            <td>Reject &gt; 15 000 chars per field with <code>400</code> before the Gemini call.</td>
+          </tr>
+        </tbody>
+      </table>
+    </section>
+
+    <!-- ============ 05 TESTS ============ -->
+    <section class="section" id="tests">
+      <div class="sec-no">§ 05 &middot; TEST HARNESS</div>
+      <h2>Pragmatic — Unit + one E2E</h2>
+      <p class="muted">Decided 2026-05-26. The harness covers what actually breaks in production: input validation, JSON parse failure, and the frontend happy path. Storybook is deliberately not in scope.</p>
+
+      <table>
+        <thead><tr><th style="width:18%">Level</th><th style="width:30%">Scope</th><th>Specs</th></tr></thead>
+        <tbody>
+          <tr>
+            <td><span class="badge hi">unit</span></td>
+            <td>Worker handler &middot; <code>vitest</code> + miniflare</td>
+            <td>
+              · empty body → 400 <code>{"error":"bad_input"}</code><br>
+              · over 15 000 chars → 400<br>
+              · stub Gemini returning non-JSON → 502 <code>{"error":"parse"}</code><br>
+              · stub <code>RATE_LIMITER.limit</code> returning <code>{success:false}</code> → 429
+            </td>
+          </tr>
+          <tr>
+            <td><span class="badge mid">e2e</span></td>
+            <td>Frontend happy path &middot; Playwright</td>
+            <td>
+              · paste resume text → paste JD → click Analyze (mock <code>/api/analyze</code>) →<br>
+              &nbsp;&nbsp;gauge number visible, 4 dimension bars visible, ≥ 1 strength, ≥ 1 gap rendered
+            </td>
+          </tr>
+          <tr>
+            <td><span class="badge lo">manual</span></td>
+            <td>Live smoke &middot; on the deployed URL</td>
+            <td>
+              · real PDF + real JD → report renders on desktop and mobile<br>
+              · 12 rapid clicks → 429 banner shows<br>
+              · DevTools offline → error state shows
+            </td>
+          </tr>
+        </tbody>
+      </table>
+
+      <details class="fold">
+        <summary>What is NOT in the harness, and why</summary>
+        <div class="inner">
+          <ul>
+            <li><strong>Storybook component tests</strong> — costly for a 1-day MVP; the visual review is the demo itself.</li>
+            <li><strong>PDF in the E2E</strong> — pdfjs in a Playwright headless context is flaky; manual smoke covers it on the live URL.</li>
+            <li><strong>Prompt regression tests</strong> — LLM output drift would need a golden-output harness; for a portfolio piece, prompt-tune by eye in A.5.</li>
+          </ul>
+        </div>
+      </details>
+    </section>
+
+    <!-- ============ 06 RISKS ============ -->
+    <section class="section" id="risks">
+      <div class="sec-no">§ 06 &middot; RISKS</div>
+      <h2>What might burn the day &middot; mitigations</h2>
+      <table>
+        <thead><tr><th style="width:18%">Risk</th><th style="width:24%">Likelihood</th><th>Mitigation</th></tr></thead>
+        <tbody>
+          <tr>
+            <td>pdfjs worker silently fails under Vite</td>
+            <td><span class="badge hi">high</span> — recurring footgun</td>
+            <td>Use §02.2 pattern verbatim. Test extraction on a sample PDF immediately after B.3 — before building any UI on top of it.</td>
+          </tr>
+          <tr>
+            <td>Gemini JSON drifts despite responseSchema</td>
+            <td><span class="badge mid">med</span></td>
+            <td>Defensive <code>JSON.parse</code> in A.3. Unit test A.4(3) locks the 502 path. Live smoke (manual) catches drift.</td>
+          </tr>
+          <tr>
+            <td>Rate-limit binding not yet on the user's CF plan</td>
+            <td><span class="badge mid">med</span> — fairly new feature</td>
+            <td>If <code>wrangler deploy</code> errors on the binding, fall back to a Workers KV counter keyed by IP (15-line replacement). Spec §06 calls this out as acceptable.</td>
+          </tr>
+          <tr>
+            <td>Prompt tuning eats hours</td>
+            <td><span class="badge mid">med</span></td>
+            <td>Time-box A.5 to 30 min. If outputs feel shallow, swap model string to <code>gemini-3.5-flash</code> — one line. Don't tune the prompt for hours.</td>
+          </tr>
+          <tr>
+            <td>API key accidentally committed</td>
+            <td><span class="badge lo">low</span> if §04 followed</td>
+            <td>Pre-commit hook can grep for <code>AIza</code> prefix; for a 1-day MVP, manual <code>git diff --cached | grep AIza</code> before each commit.</td>
+          </tr>
+          <tr>
+            <td>CORS misconfigured after deploy</td>
+            <td><span class="badge mid">med</span></td>
+            <td>§C.5 is its own task with its own verification — don't fold it into the deploy step.</td>
+          </tr>
+        </tbody>
+      </table>
+    </section>
+
+    <!-- ============ 07 TASKS ============ -->
+    <section class="section" id="tasks">
+      <div class="sec-no">§ 07 &middot; TASK SUMMARY</div>
+      <h2>17 tasks &middot; live in <code>todos.html</code></h2>
+      <p class="muted">Each task is one scannable line here; the detail lives in §03 above. The board is the truth — open <code>todos.html</code> for current status.</p>
+
+      <table>
+        <thead><tr><th style="width:11%">ID</th><th style="width:9%">Stream</th><th>Task</th><th style="width:14%">Skills</th></tr></thead>
+        <tbody>
+          <tr><td>TASK-001</td><td><span class="badge hi">A</span></td><td>Scaffold <code>worker/</code> + corrected <code>wrangler.toml</code> (§02.1)</td><td>cloudflare-naming · env-sync</td></tr>
+          <tr><td>TASK-002</td><td><span class="badge hi">A</span></td><td>Write <code>prompt.ts</code> — SYSTEM_PROMPT, buildUserTurn, FIT_REPORT_SCHEMA</td><td>—</td></tr>
+          <tr><td>TASK-003</td><td><span class="badge hi">A</span></td><td>Write <code>index.ts</code> — CORS + rate-limit + validate + Gemini + parse</td><td>—</td></tr>
+          <tr><td>TASK-004</td><td><span class="badge hi">A</span></td><td>Unit tests — 4 specs per §05</td><td>—</td></tr>
+          <tr><td>TASK-005</td><td><span class="badge hi">A</span></td><td>Curl smoke + prompt tune (3 resume/JD pairs)</td><td>—</td></tr>
+          <tr><td>TASK-006</td><td><span class="badge mid">B</span></td><td>Scaffold <code>web/</code> (Vite + React + TS + Tailwind)</td><td>env-sync</td></tr>
+          <tr><td>TASK-007</td><td><span class="badge mid">B</span></td><td><code>lib/types.ts</code> — mirror frozen §04 contract</td><td>—</td></tr>
+          <tr><td>TASK-008</td><td><span class="badge mid">B</span></td><td><code>lib/pdf.ts</code> — pdfjs v5 + Vite (§02.2)</td><td>—</td></tr>
+          <tr><td>TASK-009</td><td><span class="badge mid">B</span></td><td><code>lib/api.ts</code> — typed result with 429 case</td><td>—</td></tr>
+          <tr><td>TASK-010</td><td><span class="badge mid">B</span></td><td>Components — ScoreGauge, DimensionBar, FindingList, ResultPanel, InputPanel</td><td>—</td></tr>
+          <tr><td>TASK-011</td><td><span class="badge mid">B</span></td><td><code>App.tsx</code> — 5-state discriminated union + responsive layout</td><td>—</td></tr>
+          <tr><td>TASK-012</td><td><span class="badge lo">C</span></td><td>Local integration + manual state QA</td><td>frontend-test</td></tr>
+          <tr><td>TASK-013</td><td><span class="badge lo">C</span></td><td>Playwright happy-path E2E</td><td>frontend-test</td></tr>
+          <tr><td>TASK-014</td><td><span class="badge lo">C</span></td><td>Deploy Worker (secret put + wrangler deploy)</td><td>deploy · cloudflare-naming</td></tr>
+          <tr><td>TASK-015</td><td><span class="badge lo">C</span></td><td>Deploy Pages (<code>--project-name=fit-analyzer</code>)</td><td>deploy</td></tr>
+          <tr><td>TASK-016</td><td><span class="badge lo">C</span></td><td>Lock down — ALLOW_ORIGIN + AI Studio key restriction + CORS check</td><td>deploy</td></tr>
+          <tr><td>TASK-017</td><td><span class="badge lo">C</span></td><td>README.md + live smoke (desktop + mobile)</td><td>—</td></tr>
+        </tbody>
+      </table>
+
+      <h3>Parallel structure (for agent-team execution)</h3>
+      <p class="small muted">After <code>TASK-001</code> and <code>TASK-006</code> kick off, Stream A and Stream B can run concurrently. Stream C is serial and starts after both finish.</p>
+      <div class="code">
+        <div class="top"><span>execution graph</span><span>parallel-friendly</span></div>
+<pre>start
+ ├─ TASK-001 → 002 → 003 → 004 → 005          <span class="c"># Stream A · Worker</span>
+ └─ TASK-006 → (007, 008, 009 // 010) → 011    <span class="c"># Stream B · Frontend (007/008/009/010 parallel)</span>
+
+                       <span class="c"># both streams complete →</span>
+TASK-012 → 013 → 014 → 015 → 016 → 017         <span class="c"># Stream C · Ship</span></pre>
+      </div>
+
+      <h3>Definition of done</h3>
+      <div class="note ok">
+        <span class="ic">&#10003;</span>
+        <div>Every line of spec §10 is true, the four unit tests pass, the one Playwright E2E passes, and the live URL renders a real report from a real resume/JD pair on both desktop and mobile.</div>
+      </div>
+    </section>
+
+    <hr style="margin-top:34px">
+    <p class="small muted">Plan generated 2026-05-26 &middot; sources: <code>instruction/fit-analyzer-spec.html</code>, Cloudflare Workers docs (2026-05), Google AI Studio (2026-05), pdfjs-dist v5.7. Open <code>todos.html</code> to start work via <code>/workflow-work</code>.</p>
+
+    </div>
+  </div>
+  </div>
+</div>
+
+<script>
+/* Scroll-spy on the TOC. */
+(function(){
+  var links = Array.prototype.slice.call(document.querySelectorAll('#toc a'));
+  var map = {};
+  links.forEach(function(a){ map[a.getAttribute('href').slice(1)] = a; });
+  var io = new IntersectionObserver(function(entries){
+    entries.forEach(function(e){
+      if(e.isIntersecting){
+        links.forEach(function(l){ l.classList.remove('on'); });
+        var a = map[e.target.id]; if(a) a.classList.add('on');
+      }
+    });
+  }, { rootMargin: '-20% 0px -70% 0px' });
+  document.querySelectorAll('section[id]').forEach(function(s){ io.observe(s); });
+})();
+</script>
+</body>
+</html>

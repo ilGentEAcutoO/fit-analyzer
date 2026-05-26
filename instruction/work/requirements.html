@@ -1,0 +1,143 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>fit-analyzer — requirements</title>
+<style>/* Birchline — inlined */
+*{box-sizing:border-box;margin:0;padding:0}
+:root{
+  --paper:#F4F1E8;--paper-2:#EDE9DC;--card:#FFFFFF;--card-2:#FBF9F2;
+  --chrome:#E9E4D6;--line:#E2DCCC;--line-2:#D4CCB8;
+  --ink:#1B1A17;--ink-2:#55514A;--ink-3:#8B8678;--ink-4:#A8A395;
+  --clay:#C8623E;--clay-soft:#F2E0D6;--clay-line:#E0A98E;
+  --olive:#6F864F;--olive-soft:#E4E8D8;--olive-line:#AEBE8E;
+  --sky:#5E80A6;--sky-soft:#DCE4ED;--gold:#B98828;--gold-soft:#F1E6CC;
+  --red:#B4452F;--red-soft:#F2DDD7;--oat:#E3DACC;
+  --serif:'Iowan Old Style','Palatino Linotype',Palatino,'Hoefler Text',Georgia,serif;
+  --sans:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,'Helvetica Neue',Arial,sans-serif;
+  --mono:'SF Mono',ui-monospace,'JetBrains Mono',Menlo,Consolas,monospace;
+  --r:14px;--r-s:9px;
+  --shadow:0 1px 2px rgba(31,30,27,.05),0 10px 30px -12px rgba(31,30,27,.16);
+  --shadow-s:0 1px 2px rgba(31,30,27,.06),0 4px 12px -6px rgba(31,30,27,.12);
+  color-scheme:light;
+}
+html,body{background:var(--paper)}
+body{font-family:var(--sans);color:var(--ink);line-height:1.62;font-size:15px;-webkit-font-smoothing:antialiased}
+.page{max-width:880px;margin:0 auto;padding:30px 22px 70px}
+.kicker{font-family:var(--mono);font-size:11.5px;font-weight:600;letter-spacing:.16em;text-transform:uppercase;color:var(--ink-3)}
+.display{font-family:var(--serif);font-weight:600;letter-spacing:-.015em;line-height:1.12;font-size:clamp(28px,4.4vw,42px)}
+h1,h2,h3{font-family:var(--serif);font-weight:600;letter-spacing:-.01em;line-height:1.2}
+h2{font-size:23px;margin:32px 0 10px} h3{font-size:18px;margin:22px 0 6px}
+.lead{font-size:17px;color:var(--ink-2);line-height:1.6}
+.mono{font-family:var(--mono)}
+a{color:var(--clay);text-decoration:none;border-bottom:1px solid var(--clay-line)}
+code{font-family:var(--mono);font-size:.9em;background:var(--paper-2);padding:.1em .38em;border-radius:5px;color:var(--ink)}
+.window{background:var(--card);border:1px solid var(--line);border-radius:var(--r);box-shadow:var(--shadow);overflow:hidden}
+.window>.bar{background:var(--chrome);border-bottom:1px solid var(--line);padding:13px 16px;display:flex;align-items:center;gap:8px;position:relative}
+.window>.bar .dots{display:flex;gap:7px}
+.window>.bar .dots i{width:11px;height:11px;border-radius:50%;background:#CFC8B6;display:block}
+.window>.bar .title{position:absolute;left:0;right:0;text-align:center;font-family:var(--mono);font-size:12.5px;color:var(--ink-3);pointer-events:none}
+.window>.body{padding:32px 36px}
+.quote{border-left:3px solid var(--clay);padding:14px 20px;background:var(--clay-soft);border-radius:0 var(--r-s) var(--r-s) 0;margin:18px 0;font-family:var(--serif);font-size:17px;font-style:italic;color:var(--ink-2)}
+.quote .src{display:block;font-family:var(--mono);font-size:11px;letter-spacing:.06em;text-transform:uppercase;color:var(--ink-3);font-style:normal;margin-top:10px}
+.note{border-radius:var(--r-s);padding:13px 15px;font-size:14px;border:1px solid;display:flex;gap:10px;margin:14px 0}
+.note .ic{font-family:var(--mono);font-weight:700;flex:none}
+.note.info{background:var(--sky-soft);border-color:#C3D0DE;color:#3f5a76}
+.note.ok{background:var(--olive-soft);border-color:var(--olive-line);color:#4d5f37}
+table{width:100%;border-collapse:collapse;font-size:13.5px;margin:8px 0 14px}
+th{font-family:var(--mono);font-size:11px;letter-spacing:.06em;text-transform:uppercase;color:var(--ink-3);text-align:left;padding:7px 10px;border-bottom:1px solid var(--line-2)}
+td{padding:9px 10px;border-bottom:1px solid var(--line);color:var(--ink-2);vertical-align:top}
+td:first-child{font-family:var(--mono);font-size:12px;color:var(--ink);width:32%}
+tr:last-child td{border-bottom:none}
+.pill{display:inline-flex;align-items:center;gap:5px;font-family:var(--mono);font-size:11px;font-weight:600;letter-spacing:.04em;padding:3px 9px;border-radius:20px;text-transform:uppercase;background:var(--olive-soft);color:var(--olive)}
+.pill::before{content:"";width:6px;height:6px;border-radius:50%;background:currentColor;opacity:.9}
+.muted{color:var(--ink-3)} .small{font-size:13px}
+hr{border:none;border-top:1px solid var(--line);margin:18px 0}
+@media(max-width:720px){.window>.body{padding:20px 18px}}
+</style>
+</head>
+<body>
+<div class="page">
+<div class="window">
+  <div class="bar"><span class="dots"><i></i><i></i><i></i></span><span class="title">requirements.html</span></div>
+  <div class="body">
+
+    <div class="kicker">REQUIREMENTS &middot; fit-analyzer &middot; 2026-05-26</div>
+    <h1 class="display" style="margin-top:8px">Resume <span style="color:var(--clay);font-style:italic">&times;</span> JD Fit Analyzer</h1>
+    <p class="lead" style="margin-top:14px">An AI tool that scores how a candidate's resume matches a job description, then tells them what to fix. 1-day MVP. Live deployment is part of "done".</p>
+
+    <h2>Original request</h2>
+    <div class="quote">
+      Build the project described in <code>instruction/fit-analyzer-spec.html</code> — a 1-day MVP per the frozen spec.
+      <span class="src">/workflow-plan @instruction/fit-analyzer-spec.html &middot; 2026-05-26</span>
+    </div>
+
+    <p class="small muted">The spec is the source of truth. Its mission paragraph (reproduced verbatim below) frames why this exists.</p>
+    <div class="quote" style="background:var(--card-2);border-left-color:var(--ink-3)">
+      "A portfolio piece built for a Senior Software Engineer application at a product company whose flagship is a recruitment platform. The tool must prove three things at a glance to a technical interviewer: <strong>React competence</strong>, <strong>AI integration done right</strong>, and <strong>full-stack delivery</strong> — shipped end to end in a day."
+      <span class="src">SPEC &sect;00 Mission</span>
+    </div>
+
+    <h2>Decisions confirmed for this build</h2>
+    <p class="small muted">Asked at plan time on 2026-05-26 — these constrain the plan.</p>
+    <table>
+      <thead><tr><th>Question</th><th>Decision</th></tr></thead>
+      <tbody>
+        <tr>
+          <td>Test depth</td>
+          <td><strong>Pragmatic</strong> — unit tests on Worker validation &amp; JSON parse; one Playwright happy-path E2E against the deployed app. ~45 min. <span class="pill">accepted</span></td>
+        </tr>
+        <tr>
+          <td>Deploy scope</td>
+          <td><strong>Deploy live</strong> — <code>wrangler deploy</code> + <code>wrangler pages deploy</code> with a verified public URL. User supplies the Gemini key. <span class="pill">accepted</span></td>
+        </tr>
+        <tr>
+          <td>Stretch items</td>
+          <td><strong>None — strict MVP</strong>. No streaming, no keyword highlight, no D1 history. <span class="pill">accepted</span></td>
+        </tr>
+        <tr>
+          <td>Approval flow</td>
+          <td><strong>Full plan</strong> — populate <code>todos.html</code> immediately; user triggers <code>workflow-work</code> when ready. <span class="pill">accepted</span></td>
+        </tr>
+      </tbody>
+    </table>
+
+    <h2>Frozen contracts (from spec)</h2>
+    <p>Two things in the spec are explicitly frozen and must not be re-litigated during the build:</p>
+    <table>
+      <tbody>
+        <tr><td>FitReport JSON shape</td><td>Spec &sect;04 — Frontend and Worker both honour it exactly. 4 fixed dimensions in fixed order: <code>technical_skills</code>, <code>experience</code>, <code>education</code>, <code>domain_fit</code>.</td></tr>
+        <tr><td>Worker endpoint contract</td><td>Spec &sect;05 — <code>POST /api/analyze</code> with status codes 200/400/429/502.</td></tr>
+        <tr><td>Verdict thresholds</td><td>strong &ge; 75 &middot; moderate 50–74 &middot; weak &lt; 50. UI colour bands use the same thresholds.</td></tr>
+      </tbody>
+    </table>
+
+    <h2>What "done" means</h2>
+    <div class="note ok">
+      <span class="ic">&#10003;</span>
+      <div>All eight lines of spec &sect;10 (Definition of Done) are true, <strong>and</strong> the pragmatic test harness passes. Live URL works on desktop and mobile.</div>
+    </div>
+
+    <h2>Out of scope</h2>
+    <p class="small muted">From spec &sect;09 — flagged here so a future change request must amend this record:</p>
+    <table>
+      <tbody>
+        <tr><td>Accounts / auth</td><td>not built</td></tr>
+        <tr><td>Saved history / dashboards / database</td><td>not built (cancels D1 stretch)</td></tr>
+        <tr><td>Mobile app (React Native)</td><td>not built</td></tr>
+        <tr><td>Batch analysis of multiple resumes</td><td>not built</td></tr>
+        <tr><td>PDF export of the report</td><td>not built</td></tr>
+        <tr><td>Response streaming</td><td>not built (cancels streaming stretch)</td></tr>
+        <tr><td>UI internationalisation</td><td>not built — input may be TH/EN, that is free from the model</td></tr>
+      </tbody>
+    </table>
+
+    <hr>
+    <p class="small muted">Source of truth: <code>instruction/fit-analyzer-spec.html</code>. Execution plan: <code>instruction/work/plan.html</code>. Live task board: <code>instruction/work/todos.html</code>.</p>
+
+  </div>
+</div>
+</div>
+</body>
+</html>

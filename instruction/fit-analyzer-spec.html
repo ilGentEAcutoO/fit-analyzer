@@ -1,0 +1,857 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>fit-analyzer — Implementation Spec</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,500;9..144,600;9..144,800&family=IBM+Plex+Mono:wght@400;500;600&family=IBM+Plex+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --ink:#0f1216; --ink-2:#161a21; --ink-3:#1d2330; --line:rgba(255,255,255,.085);
+    --line-2:rgba(255,255,255,.04);
+    --tx:#d9dee7; --tx-dim:#8c97a8; --tx-faint:#5a6575;
+    --amber:#e9b949; --amber-soft:rgba(233,185,73,.11);
+    --cyan:#63cad9; --cyan-soft:rgba(99,202,217,.1);
+    --coral:#e8765a; --green:#74c78e;
+    --serif:'Fraunces',Georgia,serif; --sans:'IBM Plex Sans',sans-serif; --mono:'IBM Plex Mono',monospace;
+  }
+  *{box-sizing:border-box;margin:0;padding:0}
+  html{scroll-behavior:smooth;scroll-padding-top:80px}
+  body{
+    background:var(--ink); color:var(--tx); font-family:var(--sans);
+    font-size:15px; line-height:1.65; -webkit-font-smoothing:antialiased;
+    background-image:
+      linear-gradient(var(--line-2) 1px,transparent 1px),
+      linear-gradient(90deg,var(--line-2) 1px,transparent 1px);
+    background-size:46px 46px;
+  }
+  body::before{
+    content:""; position:fixed; inset:0; pointer-events:none; z-index:0;
+    background:radial-gradient(900px 460px at 78% -8%,rgba(233,185,73,.09),transparent 70%);
+  }
+  a{color:var(--cyan);text-decoration:none}
+  a:hover{text-decoration:underline}
+
+  /* ---- top bar ---- */
+  .topbar{
+    position:sticky; top:0; z-index:50; backdrop-filter:blur(10px);
+    background:rgba(15,18,22,.82); border-bottom:1px solid var(--line);
+    display:flex; align-items:center; justify-content:space-between;
+    padding:14px clamp(18px,4vw,46px);
+  }
+  .brand{display:flex;align-items:center;gap:11px;font-family:var(--mono);font-size:13px;letter-spacing:.04em}
+  .brand .dot{width:9px;height:9px;border-radius:2px;background:var(--amber);box-shadow:0 0 14px var(--amber)}
+  .brand b{color:var(--tx);font-weight:600}
+  .brand span{color:var(--tx-faint)}
+  .topbar .ver{font-family:var(--mono);font-size:11px;color:var(--tx-faint);border:1px solid var(--line);padding:4px 9px;border-radius:5px}
+
+  /* ---- layout ---- */
+  .wrap{max-width:1180px;margin:0 auto;padding:0 clamp(18px,4vw,46px);position:relative;z-index:1}
+  .grid{display:grid;grid-template-columns:212px 1fr;gap:54px;align-items:start}
+  @media(max-width:900px){.grid{grid-template-columns:1fr;gap:0}}
+
+  /* ---- side nav ---- */
+  nav.toc{position:sticky;top:78px;padding:38px 0;font-family:var(--mono);font-size:12px}
+  @media(max-width:900px){nav.toc{display:none}}
+  nav.toc .lbl{color:var(--tx-faint);letter-spacing:.14em;font-size:10px;margin-bottom:14px}
+  nav.toc a{display:flex;gap:10px;color:var(--tx-dim);padding:6px 0;border-left:2px solid transparent;padding-left:12px;transition:.15s}
+  nav.toc a:hover{color:var(--tx);text-decoration:none;border-color:var(--line)}
+  nav.toc a.on{color:var(--amber);border-color:var(--amber)}
+  nav.toc a i{color:var(--tx-faint);font-style:normal}
+
+  /* ---- hero ---- */
+  header.hero{padding:74px 0 30px}
+  .kick{font-family:var(--mono);font-size:12px;letter-spacing:.16em;color:var(--amber);text-transform:uppercase}
+  header.hero h1{
+    font-family:var(--serif);font-weight:600;font-size:clamp(42px,7vw,78px);
+    line-height:1.02;margin:18px 0 6px;letter-spacing:-.02em
+  }
+  header.hero h1 em{font-style:italic;color:var(--amber);font-weight:500}
+  .lede{font-size:18px;color:var(--tx-dim);max-width:60ch;margin-top:14px;line-height:1.6}
+  .meta-row{display:flex;flex-wrap:wrap;gap:8px;margin-top:26px}
+  .chip{
+    font-family:var(--mono);font-size:11.5px;padding:6px 11px;border-radius:6px;
+    border:1px solid var(--line);background:var(--ink-2);color:var(--tx-dim)
+  }
+  .chip b{color:var(--tx);font-weight:600}
+  .chip.hot{border-color:rgba(233,185,73,.4);background:var(--amber-soft);color:var(--amber)}
+
+  /* ---- sections ---- */
+  section{padding:46px 0;border-top:1px solid var(--line);animation:rise .7s cubic-bezier(.2,.7,.2,1) both}
+  @keyframes rise{from{opacity:0;transform:translateY(16px)}to{opacity:1;transform:none}}
+  .sec-head{display:flex;align-items:baseline;gap:14px;margin-bottom:8px}
+  .sec-no{font-family:var(--mono);font-size:13px;color:var(--tx-faint)}
+  h2{font-family:var(--serif);font-weight:600;font-size:clamp(26px,3.6vw,36px);letter-spacing:-.015em;line-height:1.1}
+  .sec-sub{color:var(--tx-dim);margin:10px 0 26px;max-width:64ch}
+  h3{font-family:var(--mono);font-size:13px;letter-spacing:.06em;text-transform:uppercase;color:var(--amber);margin:30px 0 12px}
+  p{margin:12px 0;color:var(--tx)}
+  p.dim{color:var(--tx-dim)}
+  ul{margin:12px 0 12px 2px;list-style:none}
+  li{padding:5px 0 5px 22px;position:relative;color:var(--tx)}
+  li::before{content:"▸";position:absolute;left:0;color:var(--amber);font-size:12px;top:7px}
+  strong{color:#fff;font-weight:600}
+  code{font-family:var(--mono);font-size:.86em;background:var(--ink-3);padding:2px 6px;border-radius:4px;color:var(--cyan)}
+
+  /* ---- callout ---- */
+  .callout{
+    border:1px solid rgba(233,185,73,.34);background:var(--amber-soft);
+    border-radius:12px;padding:24px 26px;margin:8px 0 4px
+  }
+  .callout .tag{font-family:var(--mono);font-size:11px;letter-spacing:.13em;color:var(--amber);text-transform:uppercase}
+  .callout h4{font-family:var(--serif);font-size:22px;font-weight:600;margin:8px 0 6px}
+  .callout ol{margin:14px 0 0 0;counter-reset:c;list-style:none}
+  .callout ol li{padding:7px 0 7px 34px;counter-increment:c}
+  .callout ol li::before{
+    content:counter(c);position:absolute;left:0;top:7px;width:20px;height:20px;border-radius:5px;
+    background:var(--amber);color:var(--ink);font-family:var(--mono);font-size:11px;font-weight:600;
+    display:flex;align-items:center;justify-content:center
+  }
+  .callout.warn{border-color:rgba(232,118,90,.42);background:rgba(232,118,90,.085)}
+  .callout.warn .tag{color:var(--coral)}
+  .callout.warn ul{margin-top:12px}
+  .callout.warn li::before{content:"!";color:var(--coral);font-weight:700}
+
+  /* ---- code blocks ---- */
+  .code{border:1px solid var(--line);border-radius:10px;overflow:hidden;margin:18px 0;background:#0b0d11}
+  .code .bar{
+    display:flex;align-items:center;justify-content:space-between;
+    padding:9px 14px;border-bottom:1px solid var(--line);background:var(--ink-2)
+  }
+  .code .bar span{font-family:var(--mono);font-size:11px;color:var(--tx-dim);letter-spacing:.04em}
+  .code .bar .f{color:var(--amber)}
+  .code pre{padding:16px 18px;overflow-x:auto;font-family:var(--mono);font-size:12.5px;line-height:1.7;color:#c4ccd8}
+  .code pre .c{color:var(--tx-faint)}
+  .code pre .k{color:var(--amber)}
+  .code pre .s{color:var(--green)}
+  .code pre .p{color:var(--cyan)}
+
+  /* ---- cards ---- */
+  .cards{display:grid;gap:14px;margin:18px 0}
+  .c2{grid-template-columns:1fr 1fr}.c3{grid-template-columns:repeat(3,1fr)}
+  @media(max-width:680px){.c2,.c3{grid-template-columns:1fr}}
+  .card{border:1px solid var(--line);background:var(--ink-2);border-radius:10px;padding:18px 19px}
+  .card .ct{font-family:var(--mono);font-size:12px;color:var(--amber);letter-spacing:.05em;margin-bottom:7px}
+  .card p{margin:4px 0;font-size:13.5px;color:var(--tx-dim)}
+
+  /* ---- table ---- */
+  table{width:100%;border-collapse:collapse;margin:18px 0;font-size:13.5px}
+  th,td{text-align:left;padding:11px 13px;border-bottom:1px solid var(--line)}
+  th{font-family:var(--mono);font-size:11px;letter-spacing:.07em;text-transform:uppercase;color:var(--tx-faint)}
+  td{color:var(--tx-dim)}
+  td b,td strong{color:var(--tx)}
+  tr:hover td{background:var(--line-2)}
+
+  /* ---- diagram ---- */
+  .diagram{border:1px solid var(--line);background:var(--ink-2);border-radius:12px;padding:26px 18px;margin:18px 0}
+  .diagram svg{width:100%;height:auto;display:block}
+
+  /* ---- phases ---- */
+  .phase{border:1px solid var(--line);border-radius:11px;margin:14px 0;overflow:hidden;background:var(--ink-2)}
+  .phase .ph{display:flex;align-items:center;gap:13px;padding:15px 18px;border-bottom:1px solid var(--line)}
+  .phase .ph .n{
+    font-family:var(--mono);font-size:12px;font-weight:600;color:var(--ink);background:var(--cyan);
+    width:30px;height:30px;border-radius:7px;display:flex;align-items:center;justify-content:center;flex:0 0 auto
+  }
+  .phase .ph .t{font-family:var(--serif);font-size:19px;font-weight:600}
+  .phase .ph .d{margin-left:auto;font-family:var(--mono);font-size:11px;color:var(--tx-faint);
+    border:1px solid var(--line);padding:4px 9px;border-radius:5px}
+  .phase .body{padding:8px 18px 16px}
+  .check{padding:7px 0 7px 28px;position:relative;font-size:13.5px;color:var(--tx-dim)}
+  .check::before{
+    content:"";position:absolute;left:0;top:9px;width:15px;height:15px;border-radius:4px;
+    border:1.5px solid var(--tx-faint)
+  }
+  .check b{color:var(--tx);font-weight:600}
+
+  /* ---- scope split ---- */
+  .scope{display:grid;grid-template-columns:1fr 1fr;gap:14px;margin:18px 0}
+  @media(max-width:680px){.scope{grid-template-columns:1fr}}
+  .scope .col{border:1px solid var(--line);border-radius:10px;padding:18px 19px;background:var(--ink-2)}
+  .scope .col.in{border-color:rgba(116,199,142,.32)}
+  .scope .col.out{border-color:rgba(232,118,90,.3)}
+  .scope .col h5{font-family:var(--mono);font-size:12px;letter-spacing:.07em;margin-bottom:10px}
+  .scope .in h5{color:var(--green)} .scope .out h5{color:var(--coral)}
+  .scope li::before{content:"+";color:var(--green)}
+  .scope .out li::before{content:"\2212";color:var(--coral)}
+
+  /* ---- mockup ---- */
+  .mock{border:1px solid var(--line);border-radius:12px;background:var(--ink-2);padding:14px;margin:18px 0}
+  .mock .win{border:1px solid var(--line);border-radius:8px;background:var(--ink);overflow:hidden}
+  .mock .wbar{display:flex;gap:6px;padding:9px 12px;border-bottom:1px solid var(--line);background:var(--ink-3)}
+  .mock .wbar i{width:9px;height:9px;border-radius:50%;background:var(--tx-faint);display:block}
+  .mock .panes{display:grid;grid-template-columns:1fr 1fr;gap:1px;background:var(--line)}
+  @media(max-width:680px){.mock .panes{grid-template-columns:1fr}}
+  .mock .pane{background:var(--ink);padding:18px}
+  .mock .pl{font-family:var(--mono);font-size:10.5px;letter-spacing:.08em;color:var(--tx-faint);margin-bottom:12px}
+  .mock .drop{border:1.5px dashed var(--line);border-radius:8px;padding:24px;text-align:center;
+    font-family:var(--mono);font-size:11px;color:var(--tx-faint);margin-bottom:10px}
+  .mock .ta{border:1px solid var(--line);border-radius:6px;height:74px;background:var(--ink-2);margin-bottom:10px}
+  .mock .btn{background:var(--amber);color:var(--ink);font-family:var(--mono);font-size:11px;font-weight:600;
+    text-align:center;padding:9px;border-radius:6px}
+  .gauge{display:flex;align-items:center;gap:14px;margin-bottom:14px}
+  .gauge .ring{width:64px;height:64px;border-radius:50%;flex:0 0 auto;
+    background:conic-gradient(var(--amber) 0 78%,var(--ink-3) 78% 100%);
+    display:flex;align-items:center;justify-content:center;position:relative}
+  .gauge .ring::after{content:"";position:absolute;inset:8px;border-radius:50%;background:var(--ink)}
+  .gauge .ring b{position:relative;z-index:1;font-family:var(--serif);font-size:20px}
+  .gauge .gx span{font-family:var(--mono);font-size:10px;color:var(--tx-faint);display:block}
+  .gauge .gx b{font-family:var(--serif);font-size:15px;color:var(--green)}
+  .bar-row{display:flex;align-items:center;gap:9px;margin:7px 0;font-family:var(--mono);font-size:10px;color:var(--tx-dim)}
+  .bar-row .lab{width:62px;flex:0 0 auto}
+  .bar-row .track{flex:1;height:7px;border-radius:4px;background:var(--ink-3);overflow:hidden}
+  .bar-row .track i{display:block;height:100%;border-radius:4px}
+
+  .pill{display:inline-block;font-family:var(--mono);font-size:10px;padding:2px 7px;border-radius:4px;
+    letter-spacing:.04em;vertical-align:middle}
+  .pill.hi{background:rgba(232,118,90,.16);color:var(--coral)}
+  .pill.md{background:var(--amber-soft);color:var(--amber)}
+  .pill.lo{background:rgba(116,199,142,.15);color:var(--green)}
+
+  footer{border-top:1px solid var(--line);padding:34px 0 70px;font-family:var(--mono);
+    font-size:12px;color:var(--tx-faint)}
+  footer b{color:var(--tx-dim)}
+  .hr-note{font-family:var(--mono);font-size:12px;color:var(--tx-faint);margin-top:8px}
+</style>
+</head>
+<body>
+
+<div class="topbar">
+  <div class="brand"><span class="dot"></span><b>fit-analyzer</b><span>/ implementation spec</span></div>
+  <div class="ver">v1 · 1-day MVP</div>
+</div>
+
+<div class="wrap">
+<div class="grid">
+
+  <nav class="toc">
+    <div class="lbl">CONTENTS</div>
+    <a href="#mission" class="on"><i>00</i> Mission</a>
+    <a href="#arch"><i>01</i> Architecture</a>
+    <a href="#stack"><i>02</i> Tech Stack</a>
+    <a href="#repo"><i>03</i> Repo Structure</a>
+    <a href="#engine"><i>04</i> Analysis Engine</a>
+    <a href="#worker"><i>05</i> Backend Worker</a>
+    <a href="#security"><i>06</i> Key &amp; Limits</a>
+    <a href="#frontend"><i>07</i> Frontend</a>
+    <a href="#phases"><i>08</i> Build Phases</a>
+    <a href="#scope"><i>09</i> Scope Lines</a>
+    <a href="#dod"><i>10</i> Done Criteria</a>
+    <a href="#deploy"><i>11</i> Deployment</a>
+    <a href="#pitch"><i>12</i> Talking Points</a>
+  </nav>
+
+  <main>
+
+  <header class="hero">
+    <div class="kick">Implementation Spec · for Claude Code</div>
+    <h1>Resume &times; JD<br><em>Fit Analyzer</em></h1>
+    <p class="lede">An AI tool that scores how well a candidate's resume matches a job
+      description — and tells them exactly what to fix. Paste a JD, drop a resume PDF,
+      get a structured fit report in seconds.</p>
+    <div class="meta-row">
+      <span class="chip hot">repo · <b>ilGentEAcutoO/fit-analyzer</b></span>
+      <span class="chip">React + Vite</span>
+      <span class="chip">Cloudflare Worker</span>
+      <span class="chip">Gemini 3.1 Flash-Lite</span>
+      <span class="chip">pdf.js</span>
+      <span class="chip hot">build budget · <b>~1 day</b></span>
+    </div>
+  </header>
+
+  <!-- ============ 00 MISSION ============ -->
+  <section id="mission" style="animation-delay:.04s">
+    <div class="sec-head"><span class="sec-no">§ 00</span><h2>Mission</h2></div>
+    <p class="sec-sub">This file is the single source of truth. Read it fully before
+      writing any code. It is both a human-readable plan and a work order.</p>
+
+    <div class="callout">
+      <div class="tag">For the implementing agent</div>
+      <h4>How to use this spec</h4>
+      <ol>
+        <li>Read every section before generating code. Do not start from section 05 in isolation.</li>
+        <li>Build in the order of <a href="#phases">§08 Build Phases</a>. Finish and verify a phase before the next.</li>
+        <li>The JSON contract in <a href="#engine">§04</a> is frozen. Frontend and Worker must both honour it exactly.</li>
+        <li>Read <a href="#security">§06</a> before touching any key or network call. The Gemini API key must never leak.</li>
+        <li>Respect the <a href="#scope">§09 Scope Lines</a> — do not build anything in the "out" column.</li>
+        <li>A phase is done only when its checklist and <a href="#dod">§10 Done Criteria</a> pass.</li>
+      </ol>
+    </div>
+
+    <h3>Why this exists</h3>
+    <p>This is a portfolio piece built for a Senior Software Engineer application at a
+      product company whose flagship is a recruitment platform. The tool must
+      <strong>prove three things at a glance</strong> to a technical interviewer:</p>
+    <ul>
+      <li><strong>React competence</strong> — the frontend is intentionally React, not Vue. This closes the one stack gap on the JD.</li>
+      <li><strong>AI integration done right</strong> — a real LLM call with a schema-locked output and a rate-limited, secured proxy — not a toy wrapper.</li>
+      <li><strong>Full-stack delivery</strong> — frontend, serverless API, and a live deployment, shipped end to end in a day.</li>
+    </ul>
+    <p class="dim">Domain note: resume&ndash;JD matching is deliberately recruitment-flavoured so an
+      interviewer instantly understands the value. The engine itself is domain-neutral —
+      it is a "score a document against a rubric" pattern. The JD is the rubric; the
+      resume is the submission.</p>
+  </section>
+
+  <!-- ============ 01 ARCHITECTURE ============ -->
+  <section id="arch" style="animation-delay:.04s">
+    <div class="sec-head"><span class="sec-no">§ 01</span><h2>Architecture</h2></div>
+    <p class="sec-sub">One static frontend, one serverless endpoint, one LLM call.
+      Stateless — no database in the MVP.</p>
+
+    <div class="diagram">
+      <svg viewBox="0 0 920 300" xmlns="http://www.w3.org/2000/svg" font-family="IBM Plex Mono, monospace">
+        <defs>
+          <marker id="ar" markerWidth="9" markerHeight="9" refX="7" refY="4.5" orient="auto">
+            <path d="M0,0 L9,4.5 L0,9 Z" fill="#63cad9"/>
+          </marker>
+        </defs>
+        <rect x="20" y="40" width="250" height="220" rx="10" fill="#161a21" stroke="#e9b949" stroke-opacity=".5"/>
+        <text x="38" y="66" fill="#e9b949" font-size="12">BROWSER · React + Vite</text>
+        <rect x="40" y="84" width="210" height="44" rx="7" fill="#1d2330" stroke="#ffffff" stroke-opacity=".08"/>
+        <text x="52" y="104" fill="#d9dee7" font-size="11">1 · drop resume PDF</text>
+        <text x="52" y="119" fill="#5a6575" font-size="10">pdf.js extracts text client-side</text>
+        <rect x="40" y="138" width="210" height="40" rx="7" fill="#1d2330" stroke="#ffffff" stroke-opacity=".08"/>
+        <text x="52" y="156" fill="#d9dee7" font-size="11">2 · paste job description</text>
+        <text x="52" y="170" fill="#5a6575" font-size="10">plain textarea</text>
+        <rect x="40" y="188" width="210" height="46" rx="7" fill="#1d2330" stroke="#ffffff" stroke-opacity=".08"/>
+        <text x="52" y="207" fill="#d9dee7" font-size="11">4 · render fit report</text>
+        <text x="52" y="221" fill="#5a6575" font-size="10">gauge · bars · gaps · fixes</text>
+
+        <rect x="350" y="78" width="230" height="144" rx="10" fill="#161a21" stroke="#63cad9" stroke-opacity=".5"/>
+        <text x="368" y="103" fill="#63cad9" font-size="12">CLOUDFLARE WORKER</text>
+        <text x="368" y="124" fill="#d9dee7" font-size="11">POST /api/analyze</text>
+        <text x="368" y="143" fill="#5a6575" font-size="10">· rate-limit by IP -&gt; 429</text>
+        <text x="368" y="159" fill="#5a6575" font-size="10">· validate input size</text>
+        <text x="368" y="175" fill="#5a6575" font-size="10">· build prompt + call LLM</text>
+        <text x="368" y="191" fill="#5a6575" font-size="10">· parse + return JSON</text>
+        <text x="368" y="207" fill="#5a6575" font-size="10">· holds API key (secret)</text>
+
+        <rect x="660" y="86" width="240" height="128" rx="10" fill="#161a21" stroke="#e9b949" stroke-opacity=".5"/>
+        <text x="678" y="112" fill="#e9b949" font-size="12">GEMINI API</text>
+        <text x="678" y="134" fill="#d9dee7" font-size="11">gemini-3.1-flash-lite</text>
+        <text x="678" y="153" fill="#5a6575" font-size="10">· system instruction = analyst</text>
+        <text x="678" y="169" fill="#5a6575" font-size="10">· responseSchema locks JSON</text>
+        <text x="678" y="185" fill="#5a6575" font-size="10">· returns fit report object</text>
+
+        <line x1="270" y1="150" x2="344" y2="150" stroke="#63cad9" stroke-width="1.6" marker-end="url(#ar)"/>
+        <text x="276" y="142" fill="#5a6575" font-size="9">3 · {resume, jd}</text>
+        <line x1="580" y1="150" x2="654" y2="150" stroke="#63cad9" stroke-width="1.6" marker-end="url(#ar)"/>
+        <line x1="654" y1="170" x2="582" y2="170" stroke="#74c78e" stroke-width="1.6" marker-end="url(#ar)" stroke-dasharray="4 3"/>
+        <text x="600" y="190" fill="#5a6575" font-size="9">JSON report</text>
+        <line x1="344" y1="172" x2="272" y2="172" stroke="#74c78e" stroke-width="1.6" marker-end="url(#ar)" stroke-dasharray="4 3"/>
+      </svg>
+    </div>
+    <p class="dim">Solid arrows = request. Dashed = response. The browser never sees the
+      API key — every LLM call is proxied through the Worker, behind a rate limiter.</p>
+  </section>
+
+  <!-- ============ 02 STACK ============ -->
+  <section id="stack" style="animation-delay:.04s">
+    <div class="sec-head"><span class="sec-no">§ 02</span><h2>Tech Stack</h2></div>
+    <p class="sec-sub">Keep dependencies minimal. Every addition must earn its place.</p>
+    <table>
+      <thead><tr><th>Layer</th><th>Choice</th><th>Notes</th></tr></thead>
+      <tbody>
+        <tr><td><b>Frontend</b></td><td>React 18 + Vite + TypeScript</td><td>SPA, single screen. TS required.</td></tr>
+        <tr><td><b>Styling</b></td><td>Tailwind CSS</td><td>Utility-first. No component library.</td></tr>
+        <tr><td><b>PDF parsing</b></td><td><code>pdfjs-dist</code></td><td>Client-side text extraction. No server upload.</td></tr>
+        <tr><td><b>Backend</b></td><td>Cloudflare Worker (TypeScript)</td><td>Single <code>/api/analyze</code> endpoint.</td></tr>
+        <tr><td><b>LLM</b></td><td>Google Gemini API</td><td>Model <code>gemini-3.1-flash-lite</code> — cheapest Gemini 3 tier, free tier. One-line swap to <code>gemini-3.5-flash</code> if needed.</td></tr>
+        <tr><td><b>Rate limiting</b></td><td>Cloudflare Workers rate-limit binding</td><td>10 requests / min per IP. Protects the free quota.</td></tr>
+        <tr><td><b>Hosting</b></td><td>Cloudflare Pages + Workers</td><td>Frontend on Pages, API as Worker.</td></tr>
+        <tr><td><b>Tooling</b></td><td>Wrangler</td><td>Local dev + deploy + secret management.</td></tr>
+      </tbody>
+    </table>
+    <p class="dim">No state store in the MVP. No auth. No analytics.
+      <strong>Model choice:</strong> <code>gemini-3.1-flash-lite</code> is the cheapest,
+      fastest tier of the Gemini 3 family and runs on the free tier — enough for this
+      moderate task. It is in preview, so confirm the exact model ID in Google AI Studio
+      (it may carry a <code>-preview</code> suffix). If the analysis feels shallow during
+      Phase 1 tuning, swap the model string to <code>gemini-3.5-flash</code> — same API
+      shape, one-line change.</p>
+  </section>
+
+  <!-- ============ 03 REPO ============ -->
+  <section id="repo" style="animation-delay:.04s">
+    <div class="sec-head"><span class="sec-no">§ 03</span><h2>Repo Structure</h2></div>
+    <p class="sec-sub">A simple two-folder monorepo. Frontend and Worker stay independent.</p>
+    <div class="code">
+      <div class="bar"><span class="f">fit-analyzer/</span><span>directory layout</span></div>
+<pre><span class="c"># committed to github.com/ilGentEAcutoO/fit-analyzer</span>
+fit-analyzer/
+├─ <span class="k">README.md</span>            <span class="c"># setup + run + deploy steps</span>
+├─ <span class="k">SPEC.html</span>            <span class="c"># this file — keep it in the repo</span>
+├─ <span class="k">.gitignore</span>           <span class="c"># node_modules, .dev.vars, dist  (CRITICAL)</span>
+│
+├─ <span class="p">worker/</span>
+│  ├─ src/index.ts        <span class="c"># the /api/analyze handler + rate limit</span>
+│  ├─ src/prompt.ts       <span class="c"># system prompt + response schema</span>
+│  ├─ wrangler.toml
+│  └─ package.json
+│
+└─ <span class="p">web/</span>
+   ├─ index.html
+   ├─ src/main.tsx
+   ├─ src/App.tsx          <span class="c"># top-level state + layout</span>
+   ├─ src/lib/pdf.ts       <span class="c"># pdfjs-dist text extraction</span>
+   ├─ src/lib/api.ts       <span class="c"># fetch wrapper for the Worker</span>
+   ├─ src/lib/types.ts     <span class="c"># FitReport type — mirrors §04 schema</span>
+   ├─ src/components/InputPanel.tsx
+   ├─ src/components/ResultPanel.tsx
+   ├─ src/components/ScoreGauge.tsx
+   ├─ src/components/DimensionBar.tsx
+   ├─ src/components/FindingList.tsx   <span class="c"># strengths + gaps + fixes</span>
+   ├─ vite.config.ts
+   ├─ tailwind.config.js
+   └─ package.json</pre>
+    </div>
+  </section>
+
+  <!-- ============ 04 ENGINE ============ -->
+  <section id="engine" style="animation-delay:.04s">
+    <div class="sec-head"><span class="sec-no">§ 04</span><h2>Analysis Engine</h2></div>
+    <p class="sec-sub">The heart of the product. Get this right first — the UI is just a
+      renderer for what this returns.</p>
+
+    <h3>The output contract — FitReport</h3>
+    <p>The LLM must return <strong>exactly this shape</strong>. With Gemini this is enforced
+      server-side via <code>responseSchema</code> (below), so there are no fences to strip.
+      All scores are integers 0&ndash;100. Frontend and Worker both treat this as frozen.</p>
+    <div class="code">
+      <div class="bar"><span class="f">FitReport</span><span>JSON contract</span></div>
+<pre>{
+  <span class="k">"overallScore"</span>: <span class="p">78</span>,
+  <span class="k">"verdict"</span>: <span class="s">"strong"</span>,           <span class="c">// "strong" | "moderate" | "weak"</span>
+  <span class="k">"summary"</span>: <span class="s">"One or two plain-language sentences."</span>,
+  <span class="k">"dimensions"</span>: [
+    {
+      <span class="k">"key"</span>: <span class="s">"technical_skills"</span>,
+      <span class="k">"label"</span>: <span class="s">"Technical Skills"</span>,
+      <span class="k">"score"</span>: <span class="p">85</span>,
+      <span class="k">"reason"</span>: <span class="s">"One concise line citing the resume."</span>
+    }
+    <span class="c">// exactly 4 dimensions, keys below — same order every time:</span>
+    <span class="c">// technical_skills · experience · education · domain_fit</span>
+  ],
+  <span class="k">"strengths"</span>: [
+    { <span class="k">"point"</span>: <span class="s">"What matches well."</span>,
+      <span class="k">"evidence"</span>: <span class="s">"Paraphrased proof from the resume."</span> }
+    <span class="c">// 3 to 5 items</span>
+  ],
+  <span class="k">"gaps"</span>: [
+    { <span class="k">"point"</span>: <span class="s">"What is missing or weak vs the JD."</span>,
+      <span class="k">"severity"</span>: <span class="s">"high"</span> }   <span class="c">// "high" | "medium" | "low"</span>
+    <span class="c">// 3 to 5 items</span>
+  ],
+  <span class="k">"suggestions"</span>: [
+    { <span class="k">"action"</span>: <span class="s">"A concrete edit to make to the resume."</span>,
+      <span class="k">"rationale"</span>: <span class="s">"Why it raises the fit."</span> }
+    <span class="c">// 2 to 3 items</span>
+  ]
+}</pre>
+    </div>
+
+    <h3>The system instruction</h3>
+    <p>Store this in <code>worker/src/prompt.ts</code> as an exported string. The Worker
+      sends it as Gemini's <code>system_instruction</code>. Tune wording during Phase 1.</p>
+    <div class="code">
+      <div class="bar"><span class="f">prompt.ts</span><span>system instruction — copy verbatim, then tune</span></div>
+<pre>You are an expert technical recruiter and resume analyst. You compare a
+candidate's RESUME against a JOB DESCRIPTION and produce an honest,
+evidence-based fit assessment.
+
+Rules:
+- Judge only on what the resume actually shows. Do not invent experience.
+- Be honest. Do not inflate scores to be kind. A weak match must read as weak.
+- Every dimension reason and every strength must point to real resume content.
+- Gaps are things the JD asks for that the resume does not clearly show.
+- Suggestions must be concrete, actionable resume edits — not generic advice.
+- Input may be Thai or English or mixed. Analyse it natively in either.
+
+Scoring:
+- All scores are integers from 0 to 100.
+- overallScore reflects the whole picture, not a strict average of dimensions.
+- verdict: "strong" >= 75, "moderate" 50-74, "weak" below 50.
+- The 4 dimension keys, in this fixed order:
+  technical_skills, experience, education, domain_fit.</pre>
+    </div>
+
+    <h3>Reliability — native structured output</h3>
+    <p>Gemini supports <code>responseMimeType: "application/json"</code> plus a
+      <code>responseSchema</code>. The model is constrained to the exact shape at
+      generation time — no prefill, no fence-stripping. Keep a defensive
+      <code>try/catch</code> on <code>JSON.parse</code> anyway.</p>
+    <div class="code">
+      <div class="bar"><span class="f">prompt.ts</span><span>responseSchema — condensed</span></div>
+<pre>{
+  type: <span class="s">"object"</span>,
+  properties: {
+    overallScore: { type: <span class="s">"integer"</span> },
+    verdict:      { type: <span class="s">"string"</span>, enum: [<span class="s">"strong"</span>,<span class="s">"moderate"</span>,<span class="s">"weak"</span>] },
+    summary:      { type: <span class="s">"string"</span> },
+    dimensions:   { type: <span class="s">"array"</span>, items: { type: <span class="s">"object"</span>, properties: {
+      key:    { type: <span class="s">"string"</span> }, label: { type: <span class="s">"string"</span> },
+      score:  { type: <span class="s">"integer"</span> }, reason: { type: <span class="s">"string"</span> } } } },
+    strengths:    { type: <span class="s">"array"</span>, items: { type: <span class="s">"object"</span>, properties: {
+      point: { type: <span class="s">"string"</span> }, evidence: { type: <span class="s">"string"</span> } } } },
+    gaps:         { type: <span class="s">"array"</span>, items: { type: <span class="s">"object"</span>, properties: {
+      point: { type: <span class="s">"string"</span> },
+      severity: { type: <span class="s">"string"</span>, enum: [<span class="s">"high"</span>,<span class="s">"medium"</span>,<span class="s">"low"</span>] } } } },
+    suggestions:  { type: <span class="s">"array"</span>, items: { type: <span class="s">"object"</span>, properties: {
+      action: { type: <span class="s">"string"</span> }, rationale: { type: <span class="s">"string"</span> } } } }
+  },
+  required: [<span class="s">"overallScore"</span>,<span class="s">"verdict"</span>,<span class="s">"summary"</span>,<span class="s">"dimensions"</span>,
+             <span class="s">"strengths"</span>,<span class="s">"gaps"</span>,<span class="s">"suggestions"</span>]
+}</pre>
+    </div>
+  </section>
+
+  <!-- ============ 05 WORKER ============ -->
+  <section id="worker" style="animation-delay:.04s">
+    <div class="sec-head"><span class="sec-no">§ 05</span><h2>Backend — Worker</h2></div>
+    <p class="sec-sub">One endpoint. Rate-limit, validate, call, parse, return. Keep it
+      boring and bulletproof.</p>
+
+    <h3>Endpoint contract</h3>
+    <table>
+      <thead><tr><th>Item</th><th>Spec</th></tr></thead>
+      <tbody>
+        <tr><td>Route</td><td><code>POST /api/analyze</code></td></tr>
+        <tr><td>Request body</td><td><code>{ "resume": string, "jd": string }</code></td></tr>
+        <tr><td>Success</td><td><code>200</code> · body = <code>FitReport</code> JSON (see §04)</td></tr>
+        <tr><td>Bad input</td><td><code>400</code> · <code>{ "error": "..." }</code> — empty or over 15000 chars</td></tr>
+        <tr><td>Rate limited</td><td><code>429</code> · <code>{ "error": "rate_limited" }</code> — too many requests from this IP</td></tr>
+        <tr><td>Upstream fail</td><td><code>502</code> · Gemini error or unparseable output</td></tr>
+        <tr><td>CORS</td><td>Handle <code>OPTIONS</code> preflight; allow only the Pages origin</td></tr>
+      </tbody>
+    </table>
+
+    <h3>Handler skeleton</h3>
+    <div class="code">
+      <div class="bar"><span class="f">worker/src/index.ts</span><span>starting point — extend, don't replace the contract</span></div>
+<pre><span class="k">interface</span> Env {
+  GEMINI_API_KEY: <span class="k">string</span>;          <span class="c">// secret — see §06</span>
+  ALLOW_ORIGIN:   <span class="k">string</span>;          <span class="c">// the deployed Pages URL</span>
+  RATE_LIMITER:   RateLimit;        <span class="c">// CF rate-limit binding — see §06</span>
+}
+
+<span class="k">export default</span> {
+  <span class="k">async</span> fetch(req: Request, env: Env): Promise&lt;Response&gt; {
+    <span class="k">const</span> cors = {
+      <span class="s">"Access-Control-Allow-Origin"</span>: env.ALLOW_ORIGIN,
+      <span class="s">"Access-Control-Allow-Methods"</span>: <span class="s">"POST, OPTIONS"</span>,
+      <span class="s">"Access-Control-Allow-Headers"</span>: <span class="s">"Content-Type"</span>,
+    };
+    <span class="k">if</span> (req.method === <span class="s">"OPTIONS"</span>) <span class="k">return new</span> Response(<span class="k">null</span>, { headers: cors });
+    <span class="k">if</span> (req.method !== <span class="s">"POST"</span>)   <span class="k">return</span> json({ error: <span class="s">"method"</span> }, <span class="p">405</span>, cors);
+
+    <span class="c">// --- rate limit by client IP (protects the free Gemini quota) ---</span>
+    <span class="k">const</span> ip = req.headers.get(<span class="s">"CF-Connecting-IP"</span>) ?? <span class="s">"unknown"</span>;
+    <span class="k">const</span> { success } = <span class="k">await</span> env.RATE_LIMITER.limit({ key: ip });
+    <span class="k">if</span> (!success) <span class="k">return</span> json({ error: <span class="s">"rate_limited"</span> }, <span class="p">429</span>, cors);
+
+    <span class="k">const</span> { resume, jd } = <span class="k">await</span> req.json();
+    <span class="c">// validate: non-empty, each &lt;= 15000 chars -&gt; else 400</span>
+
+    <span class="k">const</span> url = <span class="s">"https://generativelanguage.googleapis.com/v1beta/"</span>
+              + <span class="s">"models/gemini-3.1-flash-lite:generateContent"</span>;
+
+    <span class="k">const</span> res = <span class="k">await</span> fetch(url, {
+      method: <span class="s">"POST"</span>,
+      headers: {
+        <span class="s">"content-type"</span>: <span class="s">"application/json"</span>,
+        <span class="s">"x-goog-api-key"</span>: env.GEMINI_API_KEY,   <span class="c">// HEADER — never ?key= in the URL</span>
+      },
+      body: JSON.stringify({
+        system_instruction: { parts: [{ text: SYSTEM_PROMPT }] },
+        contents: [{ role: <span class="s">"user"</span>,
+                     parts: [{ text: buildUserTurn(jd, resume) }] }],
+        generationConfig: {
+          temperature: <span class="p">0.2</span>,
+          responseMimeType: <span class="s">"application/json"</span>,
+          responseSchema: FIT_REPORT_SCHEMA,       <span class="c">// from prompt.ts</span>
+        },
+      }),
+    });
+    <span class="k">if</span> (!res.ok) <span class="k">return</span> json({ error: <span class="s">"upstream"</span> }, <span class="p">502</span>, cors);
+
+    <span class="k">const</span> data = <span class="k">await</span> res.json();
+    <span class="k">const</span> raw = data.candidates?.[<span class="p">0</span>]?.content?.parts?.[<span class="p">0</span>]?.text ?? <span class="s">""</span>;
+    <span class="k">try</span> {
+      <span class="k">return</span> json(JSON.parse(raw), <span class="p">200</span>, cors);   <span class="c">// optionally validate keys</span>
+    } <span class="k">catch</span> {
+      <span class="k">return</span> json({ error: <span class="s">"parse"</span> }, <span class="p">502</span>, cors);
+    }
+  },
+};</pre>
+    </div>
+    <ul>
+      <li><strong>Validation:</strong> reject empty inputs and anything over 15000 chars with a clean <code>400</code> before spending an LLM call.</li>
+      <li><strong>Defensive parse:</strong> if the model ever returns non-JSON, fail with <code>502</code> — never crash, never leak raw upstream text to the UI.</li>
+      <li><strong>Never echo secrets:</strong> error responses carry a short code only — never the key, never the raw Gemini error body.</li>
+    </ul>
+  </section>
+
+  <!-- ============ 06 SECURITY ============ -->
+  <section id="security" style="animation-delay:.04s">
+    <div class="sec-head"><span class="sec-no">§ 06</span><h2>Key &amp; Limits</h2></div>
+    <p class="sec-sub">The repo is public. A leaked Gemini key can be drained by anyone.
+      These rules are not optional.</p>
+
+    <div class="callout warn">
+      <div class="tag">Gemini API key — non-negotiable rules</div>
+      <ul>
+        <li>The key lives <strong>only</strong> as a Worker secret: <code>wrangler secret put GEMINI_API_KEY</code>. Never in <code>wrangler.toml</code>, never in source, never committed.</li>
+        <li>Local dev uses <code>.dev.vars</code> — and <code>.dev.vars</code> <strong>must</strong> be listed in <code>.gitignore</code> before the first commit.</li>
+        <li>The frontend <strong>never</strong> calls Gemini directly. Every model call is proxied through the Worker; the key never reaches the browser bundle.</li>
+        <li>Pass the key in the <code>x-goog-api-key</code> <strong>header</strong> — never as a <code>?key=</code> URL parameter. URL params leak into logs, browser history, and referrer headers.</li>
+        <li>Error responses return a short code only — never the key, never the raw Gemini error body.</li>
+        <li>In Google AI Studio / Cloud Console, add an <strong>API restriction</strong> to the key so it only works with the Generative Language API. A restricted key that leaks is far less dangerous.</li>
+        <li>Before pushing: confirm no key string exists anywhere in <code>git log -p</code>. If one ever lands in history, rotate it immediately.</li>
+      </ul>
+    </div>
+
+    <h3>Rate limiting</h3>
+    <p>Even with a secured key, an open endpoint can be hammered until the free Gemini
+      quota is exhausted. The Worker rate-limits every request by client IP.</p>
+    <ul>
+      <li><strong>Mechanism:</strong> Cloudflare's Workers rate-limit binding — configured in <code>wrangler.toml</code>, no extra service. (A Workers KV counter keyed by IP is an acceptable fallback if the binding is unavailable.)</li>
+      <li><strong>Budget:</strong> 10 requests per minute per IP. Tune after testing.</li>
+      <li><strong>Key:</strong> the <code>CF-Connecting-IP</code> header — the real client IP at Cloudflare's edge.</li>
+      <li><strong>Behaviour:</strong> over the limit returns <code>429</code> with <code>{ "error": "rate_limited" }</code>; the frontend shows a friendly "try again shortly" message.</li>
+    </ul>
+    <div class="code">
+      <div class="bar"><span class="f">worker/wrangler.toml</span><span>rate-limit binding — confirm exact syntax in current CF docs</span></div>
+<pre><span class="c"># the rate-limit binding needs no secret and no paid plan</span>
+[[ratelimits]]
+binding      = <span class="s">"RATE_LIMITER"</span>
+namespace_id = <span class="s">"1001"</span>
+simple       = { limit = <span class="p">10</span>, period = <span class="p">60</span> }   <span class="c"># 10 req / 60s per key</span></pre>
+    </div>
+  </section>
+
+  <!-- ============ 07 FRONTEND ============ -->
+  <section id="frontend" style="animation-delay:.04s">
+    <div class="sec-head"><span class="sec-no">§ 07</span><h2>Frontend — React</h2></div>
+    <p class="sec-sub">A single screen, two panels. Input on the left, the fit report on
+      the right. Polished enough that an interviewer remembers it.</p>
+
+    <h3>Layout mockup</h3>
+    <div class="mock">
+      <div class="win">
+        <div class="wbar"><i></i><i></i><i></i></div>
+        <div class="panes">
+          <div class="pane">
+            <div class="pl">INPUT</div>
+            <div class="drop">⬆ &nbsp;drop resume .pdf &nbsp;·&nbsp; or paste text</div>
+            <div class="pl">JOB DESCRIPTION</div>
+            <div class="ta"></div>
+            <div class="btn">ANALYZE FIT →</div>
+          </div>
+          <div class="pane">
+            <div class="pl">FIT REPORT</div>
+            <div class="gauge">
+              <div class="ring"><b>78</b></div>
+              <div class="gx"><span>VERDICT</span><b>Strong match</b></div>
+            </div>
+            <div class="bar-row"><span class="lab">Technical</span><span class="track"><i style="width:85%;background:#74c78e"></i></span></div>
+            <div class="bar-row"><span class="lab">Experience</span><span class="track"><i style="width:72%;background:#e9b949"></i></span></div>
+            <div class="bar-row"><span class="lab">Education</span><span class="track"><i style="width:80%;background:#74c78e"></i></span></div>
+            <div class="bar-row"><span class="lab">Domain</span><span class="track"><i style="width:55%;background:#e9b949"></i></span></div>
+            <div class="pl" style="margin-top:14px">GAPS &nbsp;<span class="pill hi">high</span> <span class="pill md">med</span> &nbsp; FIXES ↓</div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <h3>Components</h3>
+    <div class="cards c2">
+      <div class="card"><div class="ct">App.tsx</div><p>Owns state: <code>resumeText</code>, <code>jdText</code>, <code>status</code> (idle / loading / done / error), <code>report</code>. Renders the two-panel layout.</p></div>
+      <div class="card"><div class="ct">InputPanel.tsx</div><p>PDF dropzone + paste fallback for the resume; textarea for the JD; the Analyze button. Disables the button unless both inputs have content.</p></div>
+      <div class="card"><div class="ct">lib/pdf.ts</div><p>Wraps <code>pdfjs-dist</code>. Takes a File, returns extracted text across all pages. Catches parse failures gracefully.</p></div>
+      <div class="card"><div class="ct">lib/api.ts</div><p>Single <code>analyze(resume, jd)</code> call to the Worker. Typed return of <code>FitReport</code>. Maps <code>429</code> to a distinct "rate limited" state.</p></div>
+      <div class="card"><div class="ct">ScoreGauge.tsx</div><p>The big overall score as a conic-gradient ring + verdict label. Colour shifts by band: green / amber / coral.</p></div>
+      <div class="card"><div class="ct">DimensionBar.tsx</div><p>One labelled progress bar per dimension, colour-coded by score. Rendered for all four dimensions.</p></div>
+      <div class="card"><div class="ct">FindingList.tsx</div><p>Renders strengths, gaps (with severity pills), and suggestions. The gap → fix pairing is the memorable part — make it read clearly.</p></div>
+      <div class="card"><div class="ct">ResultPanel.tsx</div><p>Composes gauge + bars + findings + the summary line. Shows skeleton on loading, a friendly message on error or rate-limit.</p></div>
+    </div>
+
+    <h3>UX rules</h3>
+    <ul>
+      <li><strong>States are explicit.</strong> idle, loading, done, error — never a blank or frozen screen. Treat <code>429</code> as its own gentle message, not a scary error.</li>
+      <li><strong>Button is honest.</strong> disabled until resume + JD both have content; shows a loading label while the request is in flight.</li>
+      <li><strong>PDF caveat.</strong> Thai text extraction from some PDFs is imperfect — that is why the paste fallback exists. Surface it if extraction returns suspiciously little text.</li>
+      <li><strong>Responsive.</strong> two panels side by side on desktop; stacked on mobile. Web only — no native app.</li>
+      <li><strong>Colour = meaning.</strong> green ≥ 75, amber 50&ndash;74, coral &lt; 50. Same thresholds as the verdict bands.</li>
+    </ul>
+  </section>
+
+  <!-- ============ 08 PHASES ============ -->
+  <section id="phases" style="animation-delay:.04s">
+    <div class="sec-head"><span class="sec-no">§ 08</span><h2>Build Phases</h2></div>
+    <p class="sec-sub">Build in order. Do not start a phase until the previous one's
+      checklist passes. Total budget ≈ 1 day — Claude Code builds; the human reviews
+      and tests at each phase boundary.</p>
+
+    <div class="phase">
+      <div class="ph"><span class="n">1</span><span class="t">Engine, Worker &amp; Rate Limit</span><span class="d">~3 hrs</span></div>
+      <div class="body">
+        <div class="check"><b>Scaffold</b> the <code>worker/</code> folder with Wrangler + TypeScript.</div>
+        <div class="check"><b>Write</b> <code>prompt.ts</code> — system instruction, user-turn builder, and the <code>responseSchema</code>.</div>
+        <div class="check"><b>Implement</b> <code>/api/analyze</code> per §05: the Gemini call with native JSON schema.</div>
+        <div class="check"><b>Add</b> the rate-limit binding and the per-IP <code>429</code> check (§06).</div>
+        <div class="check"><b>Wire</b> the API key as a local <code>.dev.vars</code> secret; confirm <code>.dev.vars</code> is gitignored.</div>
+        <div class="check"><b>Test with curl</b> against 2&ndash;3 real resume/JD pairs; confirm the rate limit trips.</div>
+        <div class="check"><b>Tune</b> the prompt until scoring feels honest and the JSON validates every run.</div>
+      </div>
+    </div>
+
+    <div class="phase">
+      <div class="ph"><span class="n">2</span><span class="t">Frontend</span><span class="d">~3 hrs</span></div>
+      <div class="body">
+        <div class="check"><b>Scaffold</b> <code>web/</code> with Vite + React + TS + Tailwind.</div>
+        <div class="check"><b>Build</b> <code>lib/pdf.ts</code> and confirm text extraction on a sample PDF.</div>
+        <div class="check"><b>Build</b> <code>InputPanel</code> — dropzone, paste fallback, JD textarea, button.</div>
+        <div class="check"><b>Build</b> <code>lib/api.ts</code>; connect to the live Worker; handle the <code>429</code> case.</div>
+        <div class="check"><b>Build</b> <code>ScoreGauge</code>, <code>DimensionBar</code>, <code>FindingList</code>, <code>ResultPanel</code>.</div>
+        <div class="check"><b>Handle</b> all four UI states: idle, loading, done, error.</div>
+      </div>
+    </div>
+
+    <div class="phase">
+      <div class="ph"><span class="n">3</span><span class="t">Polish &amp; Ship</span><span class="d">~2 hrs</span></div>
+      <div class="body">
+        <div class="check"><b>Refine</b> visual design — spacing, type, colour bands, load animation.</div>
+        <div class="check"><b>Deploy</b> the Worker; <b>deploy</b> the frontend to Cloudflare Pages.</div>
+        <div class="check"><b>Set</b> the production key secret, the Pages origin in CORS, and the AI Studio key restriction.</div>
+        <div class="check"><b>Write</b> <code>README.md</code> — what it is, how to run, the live link.</div>
+        <div class="check"><b>Smoke test</b> the deployed app end to end on desktop and mobile.</div>
+      </div>
+    </div>
+    <p class="hr-note">Stretch — only if time remains: stream the response for snappier feel ·
+      persist the last few analyses to D1 · highlight matched keywords inline.</p>
+  </section>
+
+  <!-- ============ 09 SCOPE ============ -->
+  <section id="scope" style="animation-delay:.04s">
+    <div class="sec-head"><span class="sec-no">§ 09</span><h2>Scope Lines</h2></div>
+    <p class="sec-sub">An MVP is defined by what it refuses to do. Do not cross into the
+      right column.</p>
+    <div class="scope">
+      <div class="col in">
+        <h5>IN — build this</h5>
+        <ul>
+          <li>Resume via PDF upload or pasted text</li>
+          <li>JD via pasted text</li>
+          <li>One Worker endpoint, one LLM call</li>
+          <li>Per-IP rate limiting with a 429 response</li>
+          <li>Structured FitReport: score, 4 dimensions, strengths, gaps, fixes</li>
+          <li>Two-panel responsive web UI</li>
+          <li>All four loading / error states</li>
+          <li>Live deployment + README</li>
+        </ul>
+      </div>
+      <div class="col out">
+        <h5>OUT — do not build</h5>
+        <ul>
+          <li>Accounts, login, or auth of any kind</li>
+          <li>Saved history / dashboards / a database</li>
+          <li>React Native or any mobile app</li>
+          <li>Batch analysis of multiple resumes</li>
+          <li>PDF export of the report</li>
+          <li>UI internationalisation (input can be TH/EN — that is free)</li>
+          <li>Response streaming (stretch only)</li>
+        </ul>
+      </div>
+    </div>
+  </section>
+
+  <!-- ============ 10 DOD ============ -->
+  <section id="dod" style="animation-delay:.04s">
+    <div class="sec-head"><span class="sec-no">§ 10</span><h2>Definition of Done</h2></div>
+    <p class="sec-sub">The project ships only when every line below is true.</p>
+    <ul>
+      <li>A resume PDF + a pasted JD produces a full, correct <code>FitReport</code> on screen.</li>
+      <li>The Worker returns valid JSON on every run; malformed model output degrades to a clean <code>502</code>, never a crash.</li>
+      <li>Rapid repeated requests from one IP trip the rate limiter and return <code>429</code>.</li>
+      <li>The Gemini API key exists only as a Worker secret — it appears nowhere in the frontend bundle, in <code>wrangler.toml</code>, or in git history.</li>
+      <li>The UI handles idle, loading, done, error, and rate-limited without a blank or frozen state.</li>
+      <li>The app is deployed and reachable at a public URL, working on both desktop and mobile.</li>
+      <li><code>README.md</code> lets a stranger clone, run locally, and deploy it.</li>
+      <li>Nothing from the §09 "out" column was built.</li>
+    </ul>
+  </section>
+
+  <!-- ============ 11 DEPLOY ============ -->
+  <section id="deploy" style="animation-delay:.04s">
+    <div class="sec-head"><span class="sec-no">§ 11</span><h2>Deployment</h2></div>
+    <p class="sec-sub">Two deploys: the Worker for the API, Pages for the frontend.</p>
+    <div class="code">
+      <div class="bar"><span class="f">terminal</span><span>worker</span></div>
+<pre><span class="c"># from worker/ — set the Gemini key as a secret (never committed)</span>
+npx wrangler secret put GEMINI_API_KEY
+
+<span class="c"># deploy the API (the rate-limit binding is in wrangler.toml)</span>
+npx wrangler deploy
+
+<span class="c"># local dev uses .dev.vars (gitignored):</span>
+<span class="c">#   GEMINI_API_KEY = "AIza..."</span></pre>
+    </div>
+    <div class="code">
+      <div class="bar"><span class="f">terminal</span><span>frontend</span></div>
+<pre><span class="c"># from web/ — build the SPA</span>
+npm run build
+
+<span class="c"># deploy the dist/ folder to Cloudflare Pages</span>
+npx wrangler pages deploy dist</pre>
+    </div>
+    <ul>
+      <li>Get a free Gemini API key from Google AI Studio, then restrict it to the Generative Language API in the console.</li>
+      <li>After both are live, set the Worker's <code>ALLOW_ORIGIN</code> to the exact Pages URL so CORS only permits the real frontend.</li>
+      <li>Point the frontend's API base URL at the deployed Worker (an env var in the Vite build).</li>
+      <li>Keep <code>.dev.vars</code>, <code>node_modules/</code>, and <code>dist/</code> in <code>.gitignore</code>.</li>
+    </ul>
+  </section>
+
+  <!-- ============ 12 PITCH ============ -->
+  <section id="pitch" style="animation-delay:.04s">
+    <div class="sec-head"><span class="sec-no">§ 12</span><h2>Talking Points</h2></div>
+    <p class="sec-sub">What to say about this when it comes up in the interview.</p>
+    <div class="cards c2">
+      <div class="card"><div class="ct">React, proven</div><p>"The frontend is React + Vite + TypeScript — here is the live build, not a slide." Closes the stack-gap question before it is asked.</p></div>
+      <div class="card"><div class="ct">AI done properly</div><p>A real LLM call using Gemini's native structured-output schema — the model is constrained to the exact JSON shape server-side. Talk through the prompt design and the defensive parse.</p></div>
+      <div class="card"><div class="ct">Full-stack &amp; shipped</div><p>Frontend, serverless API, and a public deployment — delivered end to end on Cloudflare in a day. Show the URL.</p></div>
+      <div class="card"><div class="ct">Security &amp; abuse instinct</div><p>The key is a Worker secret, proxied, passed via header not URL; the endpoint is rate-limited per IP to protect the quota. Mention it unprompted — it signals seniority.</p></div>
+    </div>
+    <p class="dim">The pattern under the hood — "score a submission against a rubric" — is the
+      same engine idea behind the SORNChat assessment project. Worth connecting the two
+      if the conversation turns to side projects.</p>
+  </section>
+
+  <footer>
+    <p><b>fit-analyzer</b> · implementation spec v1 · 1-day MVP build</p>
+    <p>repo — github.com/ilGentEAcutoO/fit-analyzer &nbsp;·&nbsp; keep this file as <b>SPEC.html</b> in the repo root</p>
+  </footer>
+
+  </main>
+</div>
+</div>
+
+<script>
+  const links = [...document.querySelectorAll('nav.toc a')];
+  const map = {};
+  links.forEach(a => { const id = a.getAttribute('href').slice(1); map[id] = a; });
+  const obs = new IntersectionObserver(es => {
+    es.forEach(e => {
+      if (e.isIntersecting) {
+        links.forEach(l => l.classList.remove('on'));
+        const a = map[e.target.id]; if (a) a.classList.add('on');
+      }
+    });
+  }, { rootMargin: '-20% 0px -70% 0px' });
+  document.querySelectorAll('section[id]').forEach(s => obs.observe(s));
+</script>
+</body>
+</html>
