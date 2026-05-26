@@ -65,4 +65,37 @@ describe("worker /api/analyze", () => {
     expect(res.status).toBe(429);
     await expect(res.json()).resolves.toEqual({ error: "rate_limited" });
   });
+
+  it("Gemini upstream 429 (quota/rate) → 429 rate_limited", async () => {
+    vi.stubGlobal(
+      "fetch",
+      vi.fn(async () =>
+        new Response(JSON.stringify({ error: { code: 429, status: "RESOURCE_EXHAUSTED" } }), {
+          status: 429,
+          headers: { "content-type": "application/json" },
+        }),
+      ),
+    );
+    const res = await worker.fetch(
+      postJson({ resume: "resume text", jd: "jd text" }),
+      makeEnv(),
+    );
+    expect(res.status).toBe(429);
+    await expect(res.json()).resolves.toEqual({ error: "rate_limited" });
+  });
+
+  it("Gemini upstream 5xx → 502 upstream (generic)", async () => {
+    vi.stubGlobal(
+      "fetch",
+      vi.fn(async () =>
+        new Response(JSON.stringify({ error: "server" }), { status: 503 }),
+      ),
+    );
+    const res = await worker.fetch(
+      postJson({ resume: "resume text", jd: "jd text" }),
+      makeEnv(),
+    );
+    expect(res.status).toBe(502);
+    await expect(res.json()).resolves.toEqual({ error: "upstream" });
+  });
 });

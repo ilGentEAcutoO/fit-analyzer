@@ -75,7 +75,14 @@ export default {
         },
       }),
     });
-    if (!res.ok) return json({ error: "upstream" }, 502, cors);
+    if (!res.ok) {
+      // Surface Gemini's own rate-limit/quota as our 429 so the frontend
+      // shows the same "give it a minute" UI rather than a generic error
+      // (the user action — wait and retry — is the same either way).
+      console.warn("gemini upstream non-ok:", res.status);
+      if (res.status === 429) return json({ error: "rate_limited" }, 429, cors);
+      return json({ error: "upstream" }, 502, cors);
+    }
 
     const data = (await res.json()) as {
       candidates?: Array<{ content?: { parts?: Array<{ text?: string }> } }>;
