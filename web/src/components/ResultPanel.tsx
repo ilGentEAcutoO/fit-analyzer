@@ -60,7 +60,10 @@ function RateLimitedPanel() {
     <div className="rounded-md border border-amber-200 bg-amber-50 p-6 text-center">
       <p className="font-serif text-xl text-amber-900">Give it a minute.</p>
       <p className="mt-2 text-sm text-amber-800">
-        You have hit the per-minute analysis limit. Try again shortly.
+        The analyzer is rate-limited right now.
+      </p>
+      <p className="mt-2 text-xs text-amber-700/80">
+        If it keeps happening, the daily AI quota may have run out — try again later.
       </p>
     </div>
   );
