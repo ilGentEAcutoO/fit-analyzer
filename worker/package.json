@@ -14,6 +14,13 @@
     "@cloudflare/workers-types": "^4.20250101.0",
     "typescript": "^5.6.0",
     "vitest": "^4.1.0",
-    "wrangler": "^4.36.0"
+    "wrangler": "^4.120.1"
+  },
+  "overrides": {
+    "undici": "^6.28.0",
+    "sharp": "0.35.0",
+    "esbuild": "^0.28.1",
+    "ws": "^8.18.0",
+    "miniflare": "^4.20250811.0"
   }
 }
