@@ -1,0 +1,198 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Requirements — fix all security findings</title>
+<style>/* ============================================================
+   BIRCHLINE  -  design system for workflow HTML artifacts
+   ============================================================ */
+*{box-sizing:border-box;margin:0;padding:0}
+:root{
+  --paper:#F4F1E8; --paper-2:#EDE9DC; --card:#FFFFFF; --card-2:#FBF9F2;
+  --chrome:#E9E4D6; --line:#E2DCCC; --line-2:#D4CCB8;
+  --ink:#1B1A17; --ink-2:#55514A; --ink-3:#8B8678; --ink-4:#A8A395;
+  --clay:#C8623E; --clay-soft:#F2E0D6; --clay-line:#E0A98E;
+  --olive:#6F864F; --olive-soft:#E4E8D8; --olive-line:#AEBE8E;
+  --sky:#5E80A6; --sky-soft:#DCE4ED;
+  --gold:#B98828; --gold-soft:#F1E6CC;
+  --red:#B4452F; --red-soft:#F2DDD7;
+  --oat:#E3DACC;
+  --dark:#1F1E1B; --dark-2:#2A2925; --dark-ink:#E9E5DA; --dark-dim:#8D887B;
+  --serif:'Iowan Old Style','Palatino Linotype',Palatino,'Hoefler Text',Georgia,'Times New Roman',serif;
+  --sans:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,'Helvetica Neue',Arial,sans-serif;
+  --mono:'SF Mono',ui-monospace,'JetBrains Mono',Menlo,Consolas,monospace;
+  --r:14px; --r-s:9px;
+  --shadow:0 1px 2px rgba(31,30,27,.05),0 10px 30px -12px rgba(31,30,27,.16);
+  --shadow-s:0 1px 2px rgba(31,30,27,.06),0 4px 12px -6px rgba(31,30,27,.12);
+}
+html,body{background:var(--paper)}
+body{font-family:var(--sans);color:var(--ink);line-height:1.62;font-size:15px;
+  -webkit-font-smoothing:antialiased;text-rendering:optimizeLegibility}
+.kicker{font-family:var(--mono);font-size:11.5px;font-weight:600;letter-spacing:.16em;
+  text-transform:uppercase;color:var(--ink-3)}
+.display{font-family:var(--serif);font-weight:600;letter-spacing:-.015em;line-height:1.12;
+  font-size:clamp(28px,4.4vw,42px)}
+h1,h2,h3{font-family:var(--serif);font-weight:600;letter-spacing:-.01em;line-height:1.2}
+h2{font-size:23px} h3{font-size:18px}
+.lead{font-size:17px;color:var(--ink-2);line-height:1.6}
+.mono{font-family:var(--mono)}
+code{font-family:var(--mono);font-size:.9em;background:var(--paper-2);
+  padding:.1em .38em;border-radius:5px;color:var(--ink)}
+.window{background:var(--card);border:1px solid var(--line);border-radius:var(--r);
+  box-shadow:var(--shadow);overflow:hidden}
+.window>.bar{background:var(--chrome);border-bottom:1px solid var(--line);
+  padding:13px 16px;display:flex;align-items:center;gap:8px;position:relative}
+.window>.bar .dots{display:flex;gap:7px}
+.window>.bar .dots i{width:11px;height:11px;border-radius:50%;background:#CFC8B6;display:block}
+.window>.bar .title{position:absolute;left:0;right:0;text-align:center;
+  font-family:var(--mono);font-size:12.5px;color:var(--ink-3);pointer-events:none}
+.window>.body{padding:26px 28px}
+.card{background:var(--card);border:1px solid var(--line);border-radius:var(--r);
+  padding:20px 22px;box-shadow:var(--shadow-s)}
+.pill{display:inline-flex;align-items:center;gap:5px;font-family:var(--mono);
+  font-size:11px;font-weight:600;letter-spacing:.04em;padding:3px 9px;border-radius:20px;
+  text-transform:uppercase}
+.pill::before{content:"";width:6px;height:6px;border-radius:50%;background:currentColor;opacity:.9}
+.pill.todo{background:var(--paper-2);color:var(--ink-3)}
+.badge{font-family:var(--mono);font-size:10.5px;font-weight:700;letter-spacing:.05em;
+  text-transform:uppercase;padding:2px 7px;border-radius:5px}
+.badge.hi{background:var(--clay-soft);color:var(--clay)}
+.badge.mid{background:var(--gold-soft);color:var(--gold)}
+.badge.lo{background:var(--paper-2);color:var(--ink-3)}
+.note{border-radius:var(--r-s);padding:13px 15px;font-size:14px;border:1px solid;
+  display:flex;gap:10px}
+.note .ic{font-family:var(--mono);font-weight:700;flex:none}
+.note.info{background:var(--sky-soft);border-color:#C3D0DE;color:#3f5a76}
+.note.ok{background:var(--olive-soft);border-color:var(--olive-line);color:#4d5f37}
+table{width:100%;border-collapse:collapse;font-size:13.5px}
+th{font-family:var(--mono);font-size:11px;letter-spacing:.06em;text-transform:uppercase;
+  color:var(--ink-3);text-align:left;padding:7px 10px;border-bottom:1px solid var(--line-2)}
+td{padding:8px 10px;border-bottom:1px solid var(--line);color:var(--ink-2)}
+tr:last-child td{border-bottom:none}
+blockquote{font-family:var(--serif);font-size:19px;line-height:1.45;color:var(--ink);
+  border-left:3px solid var(--clay);padding:6px 0 6px 18px;margin:14px 0;font-style:italic}
+.page{max-width:900px;margin:0 auto;padding:30px 22px 70px}
+.row{display:flex;gap:10px;align-items:center}
+.between{display:flex;justify-content:space-between;align-items:center}
+.muted{color:var(--ink-3)} .small{font-size:13px}
+hr{border:none;border-top:1px solid var(--line);margin:18px 0}
+@media(max-width:720px){.window>.body{padding:18px 16px}}
+</style>
+</head>
+<body>
+<div class="page">
+
+  <div class="window">
+    <div class="bar">
+      <span class="dots"><i></i><i></i><i></i></span>
+      <span class="title">requirements.html</span>
+    </div>
+    <div class="body">
+
+      <div class="kicker" style="margin-bottom:6px">Session record · 2026-05-26 16:30</div>
+      <h1 class="display">Fix every finding from the security review</h1>
+      <p class="lead" style="margin-top:10px">
+        Apply each recommendation in
+        <code>instruction/security-review.md</code> as a small, surgical change to
+        the worker + web sources. Keep the MVP shape (single Worker, stateless,
+        no new deps).
+      </p>
+
+      <hr>
+
+      <div class="kicker" style="margin-bottom:8px">User's exact words</div>
+      <blockquote>fix all @..\instruction\security-review.md</blockquote>
+      <p class="small muted" style="margin-top:8px">
+        Preceded by the <code>/workflow-plan</code> trigger. Earlier in the session
+        the user already accepted the review's verdict (pass with 1 medium + 4 low)
+        and explicitly closed the secret-leak incident — only the listed findings
+        remain.
+      </p>
+
+      <hr>
+
+      <div class="kicker" style="margin-bottom:8px">Restated goal</div>
+      <p>
+        Ship the five fixes proposed in the security review — one Medium and four
+        Lows — without expanding scope, adding new dependencies, or changing the
+        contract between the worker and the SPA.
+      </p>
+
+      <hr>
+
+      <div class="kicker" style="margin-bottom:10px">In scope (this plan)</div>
+      <table>
+        <thead>
+          <tr><th>#</th><th>Sev</th><th>What changes</th><th>Where</th></tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td class="mono">F1</td>
+            <td><span class="badge mid">medium</span></td>
+            <td>Fence user-controlled <code>jd</code> + <code>resume</code> with a delimiter the system prompt warns about. Reject inputs that already contain the delimiter.</td>
+            <td class="mono small"><code>worker/src/prompt.ts</code><br><code>worker/src/index.ts</code></td>
+          </tr>
+          <tr>
+            <td class="mono">F2</td>
+            <td><span class="badge lo">low</span></td>
+            <td>Early-reject on <code>Content-Length &gt; 50&nbsp;000</code> before <code>req.json()</code> materializes the body.</td>
+            <td class="mono small"><code>worker/src/index.ts</code></td>
+          </tr>
+          <tr>
+            <td class="mono">F3</td>
+            <td><span class="badge lo">low</span></td>
+            <td>Return <code>400&nbsp;bad_input</code> when <code>CF-Connecting-IP</code> is missing instead of bucketing as <code>"unknown"</code>.</td>
+            <td class="mono small"><code>worker/src/index.ts</code></td>
+          </tr>
+          <tr>
+            <td class="mono">F4</td>
+            <td><span class="badge lo">low</span></td>
+            <td>Drop the localhost fallback for <code>VITE_API_BASE</code> in non-dev builds — same-origin empty string only.</td>
+            <td class="mono small"><code>web/src/lib/api.ts</code></td>
+          </tr>
+          <tr>
+            <td class="mono">F5</td>
+            <td><span class="badge lo">low</span></td>
+            <td>Inject <code>Content-Security-Policy</code> + <code>X-Frame-Options</code> + <code>Referrer-Policy</code> on the static-asset response path.</td>
+            <td class="mono small"><code>worker/src/index.ts</code></td>
+          </tr>
+        </tbody>
+      </table>
+
+      <hr>
+
+      <div class="kicker" style="margin-bottom:10px">Out of scope</div>
+      <ul style="padding-left:20px;color:var(--ink-2)">
+        <li>The post-MVP follow-ups listed in <code>session-summary.html</code> (streaming, bundle code-splitting, observability) — not security findings.</li>
+        <li>Any change to the <code>FitReport</code> JSON contract or the dimension ordering.</li>
+        <li>Any new runtime dependency in either <code>worker/</code> or <code>web/</code>.</li>
+        <li>Touching the archived session-001 HTML files.</li>
+      </ul>
+
+      <hr>
+
+      <div class="kicker" style="margin-bottom:10px">Constraints (carried over from CLAUDE.md)</div>
+      <table>
+        <tbody>
+          <tr><td class="mono small" style="width:35%">Stateless worker</td><td>No D1, no KV, no Durable Objects.</td></tr>
+          <tr><td class="mono small">Single contract</td><td><code>FIT_REPORT_SCHEMA</code> and <code>web/src/lib/types.ts</code> stay in lockstep.</td></tr>
+          <tr><td class="mono small">Opaque errors</td><td>Worker error responses remain short codes — no echoing upstream bodies.</td></tr>
+          <tr><td class="mono small">Test floor</td><td><code>worker/src/index.test.ts</code> grows for new behaviors; suite stays green.</td></tr>
+          <tr><td class="mono small">Deploy path</td><td>Same single-worker shape; no new CI steps.</td></tr>
+        </tbody>
+      </table>
+
+      <hr>
+
+      <div class="note ok">
+        <span class="ic">→</span>
+        <div>The plan with per-finding diffs, an architecture map, and the test specs lives next to this file as <code>plan.html</code>.</div>
+      </div>
+
+    </div>
+  </div>
+
+</div>
+</body>
+</html>

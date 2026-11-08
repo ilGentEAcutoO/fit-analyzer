@@ -8,7 +8,7 @@ Stateless. No database. The Worker holds the Gemini key; the browser never sees 
 
 ## What it does
 
-Drop a resume PDF + paste a job description. The Worker calls `gemini-3.1-flash-lite` with a frozen response schema and returns a `FitReport` — a verdict (`strong | moderate | weak`), an overall score 0–100, four dimension scores (technical_skills · experience · education · domain_fit), strengths, gaps, and concrete suggestions.
+Drop a resume PDF + paste a job description. The Worker calls `gemini-3.5-flash` with a frozen response schema and returns a `FitReport` — a verdict (`strong | moderate | weak`), an overall score 0–100, four dimension scores (technical_skills · experience · education · domain_fit), strengths, gaps, and concrete suggestions.
 
 Verdict thresholds: `strong` ≥ 75 · `moderate` 50–74 · `weak` < 50.
 

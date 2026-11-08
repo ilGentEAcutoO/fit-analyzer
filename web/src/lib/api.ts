@@ -4,7 +4,8 @@ export type Result =
   | { ok: true; data: FitReport }
   | { ok: false; kind: 'rate_limited' | 'bad_input' | 'upstream' | 'network' };
 
-const BASE = import.meta.env.VITE_API_BASE ?? 'http://127.0.0.1:8787';
+const BASE = import.meta.env.VITE_API_BASE
+  ?? (import.meta.env.DEV ? 'http://127.0.0.1:8787' : '');
 
 export async function analyze(resume: string, jd: string): Promise<Result> {
   let res: Response;

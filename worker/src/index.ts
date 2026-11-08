@@ -1,4 +1,4 @@
-import { SYSTEM_PROMPT, buildUserTurn, FIT_REPORT_SCHEMA } from "./prompt";
+import { SYSTEM_PROMPT, buildUserTurn, FIT_REPORT_SCHEMA, USER_DATA_SEP } from "./prompt";
 
 export interface Env {
   GEMINI_API_KEY: string;
@@ -8,8 +8,19 @@ export interface Env {
 }
 
 const MAX_FIELD = 15000;
+const MAX_BODY = 50000;
+const CSP = [
+  "default-src 'self'",
+  "script-src 'self' 'wasm-unsafe-eval'",
+  "style-src 'self' 'unsafe-inline'",
+  "img-src 'self' data: blob:",
+  "worker-src 'self' blob:",
+  "connect-src 'self'",
+  "frame-ancestors 'none'",
+  "base-uri 'self'",
+].join("; ");
 const GEMINI_URL =
-  "https://generativelanguage.googleapis.com/v1beta/models/gemini-3.1-flash-lite:generateContent";
+  "https://generativelanguage.googleapis.com/v1beta/models/gemini-3.5-flash:generateContent";
 
 function json(obj: unknown, status: number, cors: Record<string, string>): Response {
   return new Response(JSON.stringify(obj), {
@@ -24,7 +35,12 @@ export default {
 
     // non-API requests → static SPA assets (handled by Cloudflare Workers Assets)
     if (url.pathname !== "/api/analyze") {
-      return env.ASSETS.fetch(req);
+      const res = await env.ASSETS.fetch(req);
+      const r = new Response(res.body, res);
+      r.headers.set("Content-Security-Policy", CSP);
+      r.headers.set("X-Frame-Options", "DENY");
+      r.headers.set("Referrer-Policy", "strict-origin-when-cross-origin");
+      return r;
     }
 
     const cors = {
@@ -36,9 +52,13 @@ export default {
     if (req.method === "OPTIONS") return new Response(null, { status: 204, headers: cors });
     if (req.method !== "POST") return json({ error: "method" }, 405, cors);
 
-    const ip = req.headers.get("CF-Connecting-IP") ?? "unknown";
+    const ip = req.headers.get("CF-Connecting-IP");
+    if (!ip) return json({ error: "bad_input" }, 400, cors);
     const { success } = await env.RATE_LIMITER.limit({ key: ip });
     if (!success) return json({ error: "rate_limited" }, 429, cors);
+
+    const len = Number(req.headers.get("content-length") ?? "0");
+    if (len > MAX_BODY) return json({ error: "bad_input" }, 400, cors);
 
     let body: unknown;
     try {
@@ -56,6 +76,9 @@ export default {
       resume.length > MAX_FIELD ||
       jd.length > MAX_FIELD
     ) {
+      return json({ error: "bad_input" }, 400, cors);
+    }
+    if (resume.includes(USER_DATA_SEP) || jd.includes(USER_DATA_SEP)) {
       return json({ error: "bad_input" }, 400, cors);
     }
 
@@ -79,7 +102,8 @@ export default {
       // Surface Gemini's own rate-limit/quota as our 429 so the frontend
       // shows the same "give it a minute" UI rather than a generic error
       // (the user action — wait and retry — is the same either way).
-      console.warn("gemini upstream non-ok:", res.status);
+      // Body is logged to `wrangler tail` only — never echoed in client response.
+      console.warn("gemini upstream non-ok:", res.status, await res.clone().text());
       if (res.status === 429) return json({ error: "rate_limited" }, 429, cors);
       return json({ error: "upstream" }, 502, cors);
     }

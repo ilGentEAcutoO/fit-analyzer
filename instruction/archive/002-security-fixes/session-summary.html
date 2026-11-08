@@ -1,0 +1,536 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Session 002 — security fixes + prod hotfix</title>
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+:root{
+  --paper:#F4F1E8; --paper-2:#EDE9DC; --card:#FFFFFF; --card-2:#FBF9F2;
+  --chrome:#E9E4D6; --line:#E2DCCC; --line-2:#D4CCB8;
+  --ink:#1B1A17; --ink-2:#55514A; --ink-3:#8B8678; --ink-4:#A8A395;
+  --clay:#C8623E; --clay-soft:#F2E0D6; --clay-line:#E0A98E;
+  --olive:#6F864F; --olive-soft:#E4E8D8; --olive-line:#AEBE8E;
+  --sky:#5E80A6; --sky-soft:#DCE4ED;
+  --gold:#B98828; --gold-soft:#F1E6CC;
+  --red:#B4452F; --red-soft:#F2DDD7;
+  --oat:#E3DACC;
+  --dark:#1F1E1B; --dark-2:#2A2925; --dark-ink:#E9E5DA; --dark-dim:#8D887B;
+  --serif:'Iowan Old Style','Palatino Linotype',Palatino,'Hoefler Text',Georgia,'Times New Roman',serif;
+  --sans:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,'Helvetica Neue',Arial,sans-serif;
+  --mono:'SF Mono',ui-monospace,'JetBrains Mono',Menlo,Consolas,monospace;
+  --r:14px; --r-s:9px;
+  --shadow:0 1px 2px rgba(31,30,27,.05),0 10px 30px -12px rgba(31,30,27,.16);
+  --shadow-s:0 1px 2px rgba(31,30,27,.06),0 4px 12px -6px rgba(31,30,27,.12);
+}
+html,body{background:var(--paper)}
+body{font-family:var(--sans);color:var(--ink);line-height:1.62;font-size:15px;
+  -webkit-font-smoothing:antialiased;text-rendering:optimizeLegibility}
+.kicker{font-family:var(--mono);font-size:11.5px;font-weight:600;letter-spacing:.16em;
+  text-transform:uppercase;color:var(--ink-3)}
+.display{font-family:var(--serif);font-weight:600;letter-spacing:-.015em;line-height:1.12;
+  font-size:clamp(28px,4.4vw,42px)}
+h1,h2,h3{font-family:var(--serif);font-weight:600;letter-spacing:-.01em;line-height:1.2}
+h2{font-size:23px} h3{font-size:18px}
+.lead{font-size:17px;color:var(--ink-2);line-height:1.6}
+.mono{font-family:var(--mono)}
+code{font-family:var(--mono);font-size:.9em;background:var(--paper-2);
+  padding:.1em .38em;border-radius:5px;color:var(--ink)}
+.window{background:var(--card);border:1px solid var(--line);border-radius:var(--r);
+  box-shadow:var(--shadow);overflow:hidden}
+.window>.bar{background:var(--chrome);border-bottom:1px solid var(--line);
+  padding:13px 16px;display:flex;align-items:center;gap:8px;position:relative}
+.window>.bar .dots{display:flex;gap:7px}
+.window>.bar .dots i{width:11px;height:11px;border-radius:50%;background:#CFC8B6;display:block}
+.window>.bar .title{position:absolute;left:0;right:0;text-align:center;
+  font-family:var(--mono);font-size:12.5px;color:var(--ink-3);pointer-events:none}
+.window>.body{padding:26px 28px}
+.pill{display:inline-flex;align-items:center;gap:5px;font-family:var(--mono);
+  font-size:11px;font-weight:600;letter-spacing:.04em;padding:3px 9px;border-radius:20px;text-transform:uppercase}
+.pill::before{content:"";width:6px;height:6px;border-radius:50%;background:currentColor;opacity:.9}
+.pill.done{background:var(--olive-soft);color:var(--olive)}
+.pill.hi{background:var(--clay-soft);color:var(--clay)}
+.badge{font-family:var(--mono);font-size:10.5px;font-weight:700;letter-spacing:.05em;
+  text-transform:uppercase;padding:2px 7px;border-radius:5px}
+.badge.hi{background:var(--clay-soft);color:var(--clay)}
+.badge.mid{background:var(--gold-soft);color:var(--gold)}
+.badge.lo{background:var(--paper-2);color:var(--ink-3)}
+.stat{background:var(--card-2);border:1px solid var(--line);border-radius:var(--r-s);
+  padding:16px 18px}
+.stat .n{font-family:var(--serif);font-size:34px;font-weight:600;line-height:1;letter-spacing:-.02em}
+.stat .l{font-family:var(--mono);font-size:11px;letter-spacing:.08em;text-transform:uppercase;
+  color:var(--ink-3);margin-bottom:8px}
+.stat.good .n{color:var(--olive)} .stat.bad .n{color:var(--red)} .stat.key .n{color:var(--clay)}
+.note{border-radius:var(--r-s);padding:13px 15px;font-size:14px;border:1px solid;display:flex;gap:10px}
+.note .ic{font-family:var(--mono);font-weight:700;flex:none;font-size:18px;line-height:1.2}
+.note.info{background:var(--sky-soft);border-color:#C3D0DE;color:#3f5a76}
+.note.ok{background:var(--olive-soft);border-color:var(--olive-line);color:#4d5f37}
+.note.warn{background:var(--clay-soft);border-color:var(--clay-line);color:#9a4a2c}
+.code{background:var(--dark);border-radius:var(--r-s);overflow:hidden;
+  font-family:var(--mono);font-size:12.5px;line-height:1.7}
+.code .top{background:var(--dark-2);padding:8px 14px;display:flex;justify-content:space-between;
+  color:var(--dark-dim);font-size:11.5px;border-bottom:1px solid #000}
+.code pre{padding:14px 16px;color:var(--dark-ink);overflow-x:auto}
+.code .c{color:var(--dark-dim)} .code .k{color:#D9A05B} .code .s{color:#9BB06E}
+.fold{border-top:1px solid var(--line);margin-top:18px;padding-top:14px}
+.fold>summary{list-style:none;cursor:pointer;font-family:var(--mono);font-size:11.5px;
+  letter-spacing:.06em;text-transform:uppercase;color:var(--ink-3)}
+.fold>summary::-webkit-details-marker{display:none}
+.fold>summary::before{content:"+ ";color:var(--clay)}
+.fold[open]>summary::before{content:"− "}
+.fold .inner{padding-top:12px;font-size:13.5px;color:var(--ink-2)}
+.grid-3{display:grid;grid-template-columns:repeat(3,1fr);gap:14px}
+.grid-4{display:grid;grid-template-columns:repeat(4,1fr);gap:14px}
+.grid-2{display:grid;grid-template-columns:1fr 1fr;gap:16px}
+table{width:100%;border-collapse:collapse;font-size:13.5px}
+th{font-family:var(--mono);font-size:11px;letter-spacing:.06em;text-transform:uppercase;
+  color:var(--ink-3);text-align:left;padding:7px 10px;border-bottom:1px solid var(--line-2)}
+td{padding:8px 10px;border-bottom:1px solid var(--line);color:var(--ink-2);vertical-align:top}
+tr:last-child td{border-bottom:none}
+.tag{display:inline-block;font-family:var(--mono);font-size:11px;color:var(--ink-2);
+  background:var(--card-2);border:1px solid var(--line);border-radius:6px;padding:2px 7px}
+.page{max-width:1040px;margin:0 auto;padding:30px 22px 70px}
+.row{display:flex;gap:10px;align-items:center}
+.between{display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:14px}
+.muted{color:var(--ink-3)} .small{font-size:13px}
+hr{border:none;border-top:1px solid var(--line);margin:18px 0}
+.stamp{display:inline-flex;align-items:center;gap:8px;background:var(--olive);color:#fff;
+  padding:6px 14px 6px 12px;border-radius:20px;font-family:var(--mono);font-size:12px;
+  font-weight:700;letter-spacing:.06em;text-transform:uppercase;box-shadow:var(--shadow-s)}
+.stamp::before{content:"";width:8px;height:8px;border-radius:50%;background:#fff}
+ul{padding-left:20px;color:var(--ink-2)} li{margin-bottom:4px}
+@media(max-width:720px){.grid-3,.grid-4,.grid-2{grid-template-columns:1fr}.window>.body{padding:18px 16px}}
+</style>
+</head>
+<body>
+<div class="page">
+
+  <div class="window">
+    <div class="bar">
+      <span class="dots"><i></i><i></i><i></i></span>
+      <span class="title">session-summary.html</span>
+    </div>
+    <div class="body">
+
+      <div class="between" style="margin-bottom:14px">
+        <div>
+          <div class="kicker">Session 002 · 2026-05-26 16:30 → 19:10 · ~2 h 40 m</div>
+          <h1 class="display" style="margin-top:6px">Five surgical security fixes — and one prod fire</h1>
+        </div>
+        <span class="stamp">complete · prod live</span>
+      </div>
+
+      <p class="lead" style="max-width:860px;margin-top:8px">
+        Shipped all 5 findings from the security review (1 medium + 4 low) as
+        independent surgical patches. Discovered mid-session that <strong>prod
+        was already broken</strong> by an expired Gemini key — and a model name
+        the docs no longer recognise. Diagnosed via <code>wrangler tail</code>,
+        rotated the key, swapped the model, redeployed. Audit GREEN. No leaks.
+      </p>
+
+      <hr>
+
+      <!-- ===== top stats ===== -->
+      <div class="grid-4" style="margin-bottom:6px">
+        <div class="stat good">
+          <div class="l">Tasks done</div>
+          <div class="n">7</div>
+          <div class="small muted" style="margin-top:4px">5 sec · 1 hotfix · 1 obs</div>
+        </div>
+        <div class="stat good">
+          <div class="l">Tests passing</div>
+          <div class="n">14<span style="font-size:18px;color:var(--ink-3)">/14</span></div>
+          <div class="small muted" style="margin-top:4px">was 6 → +8 new</div>
+        </div>
+        <div class="stat key">
+          <div class="l">Prod deploys</div>
+          <div class="n">2</div>
+          <div class="small muted" style="margin-top:4px">v <span class="mono small">f0522ce4…</span></div>
+        </div>
+        <div class="stat good">
+          <div class="l">Vulns / leaks</div>
+          <div class="n">0</div>
+          <div class="small muted" style="margin-top:4px">audit GREEN</div>
+        </div>
+      </div>
+
+      <hr>
+
+      <!-- ===== verdict callouts ===== -->
+      <div class="grid-2" style="margin-bottom:6px">
+        <div class="note ok">
+          <span class="ic">✓</span>
+          <div>
+            <strong>Security audit — GREEN.</strong>
+            <div class="small" style="margin-top:6px">
+              Real Google key value (AIzaSy + 33 chars) appears <em>only</em> in two
+              gitignored files: <code>.env</code> at root and <code>worker/.dev.vars</code>.
+              Zero hits in source, HTML deliverables, README, CLAUDE.md, memory, npm
+              audit, git history (-S "AIzaSy" hits placeholders only), and wrangler tail
+              transcripts in <code>%TEMP%\claude</code>. <code>.example</code> files
+              all carry safe placeholders.
+            </div>
+          </div>
+        </div>
+        <div class="note ok">
+          <span class="ic">✓</span>
+          <div>
+            <strong>Prod fully restored.</strong>
+            <div class="small" style="margin-top:6px">
+              <code>POST https://fit-analyzer.jairukchan.com/api/analyze</code> →
+              <code>200 OK</code>, returns a valid <code>FitReport</code>
+              (<code>overallScore: 82</code>, <code>verdict: "strong"</code>, all 4
+              dimensions in fixed order). Worker bindings intact:
+              <code>RATE_LIMITER</code>, <code>ASSETS</code>, <code>ALLOW_ORIGIN</code>,
+              and the new <code>GEMINI_API_KEY</code> secret.
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <hr>
+
+      <!-- ===== the chase — the real story of this session ===== -->
+      <h2 style="margin-bottom:6px">The diagnostic chase — how 502 became 200</h2>
+      <p class="small muted" style="margin-bottom:14px">
+        Three deploys, two real bugs, one observability seam. The model swap
+        wouldn't have helped without the key rotation — and vice versa.
+      </p>
+
+      <svg viewBox="0 0 980 290" style="width:100%;height:auto;background:var(--card-2);border:1px solid var(--line);border-radius:var(--r-s);padding:6px" xmlns="http://www.w3.org/2000/svg" font-family="ui-monospace,Menlo,Consolas,monospace">
+        <defs>
+          <marker id="a1" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+            <path d="M0,0 L10,5 L0,10 z" fill="#8B8678"/>
+          </marker>
+          <marker id="a2" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+            <path d="M0,0 L10,5 L0,10 z" fill="#C8623E"/>
+          </marker>
+        </defs>
+
+        <!-- timeline lane -->
+        <text x="20" y="22" font-size="11" fill="#8B8678" letter-spacing="1.5">DIAGNOSTIC TIMELINE — left to right</text>
+        <line x1="20" y1="30" x2="960" y2="30" stroke="#E2DCCC"/>
+
+        <!-- 1: user reports -->
+        <rect x="22" y="58" width="146" height="58" rx="8" fill="#F2DDD7" stroke="#B4452F"/>
+        <text x="95" y="80" font-size="12" text-anchor="middle" fill="#8d3322" font-weight="700">user: "prod broken"</text>
+        <text x="95" y="98" font-size="10.5" text-anchor="middle" fill="#8d3322">unexpected response</text>
+        <text x="95" y="110" font-size="10.5" text-anchor="middle" fill="#8d3322">try again</text>
+
+        <line x1="168" y1="86" x2="208" y2="86" stroke="#8B8678" marker-end="url(#a1)"/>
+
+        <!-- 2: curl repro -->
+        <rect x="208" y="58" width="156" height="58" rx="8" fill="#FFFFFF" stroke="#E2DCCC"/>
+        <text x="286" y="80" font-size="12" text-anchor="middle" font-weight="600">curl prod</text>
+        <text x="286" y="98" font-size="10.5" text-anchor="middle" fill="#8B8678">→ 502 upstream</text>
+        <text x="286" y="110" font-size="10.5" text-anchor="middle" fill="#8B8678">every request</text>
+
+        <line x1="364" y1="86" x2="404" y2="86" stroke="#8B8678" marker-end="url(#a1)"/>
+
+        <!-- 3: Context7 model check + deploy 1 -->
+        <rect x="404" y="58" width="178" height="58" rx="8" fill="#FFFFFF" stroke="#E2DCCC"/>
+        <text x="493" y="76" font-size="12" text-anchor="middle" font-weight="600">Context7 lookup</text>
+        <text x="493" y="92" font-size="10.5" text-anchor="middle" fill="#8B8678">3.1-flash-lite: 404 in docs</text>
+        <text x="493" y="108" font-size="10.5" text-anchor="middle" fill="#C8623E">deploy #1 → still 502</text>
+
+        <line x1="582" y1="86" x2="622" y2="86" stroke="#C8623E" stroke-width="2" marker-end="url(#a2)"/>
+
+        <!-- 4: tail seam + deploy 2 -->
+        <rect x="622" y="58" width="178" height="58" rx="8" fill="#F2E0D6" stroke="#C8623E"/>
+        <text x="711" y="76" font-size="12" text-anchor="middle" font-weight="700" fill="#9a4a2c">add body-log seam</text>
+        <text x="711" y="92" font-size="10.5" text-anchor="middle" fill="#9a4a2c">res.clone().text() in warn</text>
+        <text x="711" y="108" font-size="10.5" text-anchor="middle" fill="#9a4a2c">deploy #2 + tail again</text>
+
+        <line x1="800" y1="86" x2="840" y2="86" stroke="#8B8678" marker-end="url(#a1)"/>
+
+        <!-- 5: real cause revealed -->
+        <rect x="840" y="58" width="118" height="58" rx="8" fill="#F1E6CC" stroke="#B98828"/>
+        <text x="899" y="80" font-size="11.5" text-anchor="middle" font-weight="700" fill="#8d6d20">CAUSE:</text>
+        <text x="899" y="96" font-size="10.5" text-anchor="middle" fill="#8d6d20">API key</text>
+        <text x="899" y="108" font-size="10.5" text-anchor="middle" fill="#8d6d20">expired</text>
+
+        <!-- arrow down to fix lane -->
+        <line x1="899" y1="116" x2="899" y2="156" stroke="#8B8678" marker-end="url(#a1)"/>
+
+        <!-- 6: rotate key -->
+        <rect x="794" y="156" width="164" height="56" rx="8" fill="#E4E8D8" stroke="#6F864F"/>
+        <text x="876" y="178" font-size="12" text-anchor="middle" font-weight="700" fill="#4d5f37">sed .env | wrangler</text>
+        <text x="876" y="194" font-size="10.5" text-anchor="middle" fill="#4d5f37">secret put GEMINI_API_KEY</text>
+        <text x="876" y="206" font-size="10.5" text-anchor="middle" fill="#4d5f37">+ update .dev.vars</text>
+
+        <!-- arrow back -->
+        <line x1="794" y1="184" x2="754" y2="184" stroke="#6F864F" stroke-width="2" marker-end="url(#a1)"/>
+
+        <!-- 7: prod 200 -->
+        <rect x="586" y="156" width="168" height="56" rx="8" fill="#FFFFFF" stroke="#6F864F"/>
+        <text x="670" y="178" font-size="12" text-anchor="middle" font-weight="700" fill="#4d5f37">curl prod → 200 OK</text>
+        <text x="670" y="194" font-size="10.5" text-anchor="middle" fill="#4d5f37">FitReport verdict:strong</text>
+        <text x="670" y="206" font-size="10.5" text-anchor="middle" fill="#4d5f37">overallScore: 82</text>
+
+        <!-- legend -->
+        <text x="22" y="252" font-size="10.5" fill="#8B8678">Net: 3 deploys (#1 model swap, #2 add log seam, secret update needed no redeploy — bindings hot-reload).</text>
+        <text x="22" y="272" font-size="10.5" fill="#8B8678">Total time on the chase: ~25 min once user reported. <tspan font-weight="700">Two real causes, one of them only visible in CF tail logs.</tspan></text>
+      </svg>
+
+      <hr>
+
+      <!-- ===== tasks table ===== -->
+      <h2 style="margin-bottom:12px">Tasks completed</h2>
+      <table style="background:var(--card);border:1px solid var(--line);border-radius:var(--r-s);overflow:hidden">
+        <thead>
+          <tr><th style="width:90px">ID</th><th>Task</th><th style="width:70px">Sev</th><th style="width:120px">Status</th></tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td class="mono">TASK-001</td>
+            <td>F1 · fence prompt inputs with <code>USER_DATA_SEP</code>; reject delimiter-bearing content; SYSTEM_PROMPT addendum warns the model</td>
+            <td><span class="badge mid">med</span></td>
+            <td><span class="pill done">done</span></td>
+          </tr>
+          <tr>
+            <td class="mono">TASK-002</td>
+            <td>F2 · Content-Length guard (<code>MAX_BODY = 50000</code>) before <code>req.json()</code></td>
+            <td><span class="badge lo">low</span></td>
+            <td><span class="pill done">done</span></td>
+          </tr>
+          <tr>
+            <td class="mono">TASK-003</td>
+            <td>F3 · require <code>CF-Connecting-IP</code>; drop <code>"unknown"</code> fallback; update test helpers</td>
+            <td><span class="badge lo">low</span></td>
+            <td><span class="pill done">done</span></td>
+          </tr>
+          <tr>
+            <td class="mono">TASK-004</td>
+            <td>F4 · gate localhost <code>VITE_API_BASE</code> fallback behind <code>import.meta.env.DEV</code></td>
+            <td><span class="badge lo">low</span></td>
+            <td><span class="pill done">done</span></td>
+          </tr>
+          <tr>
+            <td class="mono">TASK-005</td>
+            <td>F5 · inject CSP + <code>X-Frame-Options: DENY</code> + <code>Referrer-Policy</code> on asset responses</td>
+            <td><span class="badge lo">low</span></td>
+            <td><span class="pill done">done</span></td>
+          </tr>
+          <tr>
+            <td class="mono">TASK-006</td>
+            <td>Prod hotfix · model swap <code>gemini-3.1-flash-lite</code> → <code>gemini-3.5-flash</code> (dead in current docs) + Gemini API key rotation via <code>wrangler secret put</code></td>
+            <td><span class="badge hi">high</span></td>
+            <td><span class="pill done">done</span></td>
+          </tr>
+          <tr>
+            <td class="mono">TASK-007</td>
+            <td>Observability · log Gemini error body to <code>wrangler tail</code> on upstream failure (server-side only, never echoed to client)</td>
+            <td><span class="badge lo">low</span></td>
+            <td><span class="pill done">done</span></td>
+          </tr>
+        </tbody>
+      </table>
+
+      <hr>
+
+      <!-- ===== files changed ===== -->
+      <h2 style="margin-bottom:12px">Files changed</h2>
+      <table style="background:var(--card);border:1px solid var(--line);border-radius:var(--r-s);overflow:hidden">
+        <thead>
+          <tr><th>Path</th><th>Net</th><th>Why</th></tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td class="mono small">worker/src/index.ts</td>
+            <td class="mono small">+30</td>
+            <td>F2 length guard · F3 IP required · F5 asset wrap with CSP · F1 marker rejection · TASK-006 model URL · TASK-007 body log</td>
+          </tr>
+          <tr>
+            <td class="mono small">worker/src/prompt.ts</td>
+            <td class="mono small">+10</td>
+            <td>F1 · exported <code>USER_DATA_SEP</code>; <code>buildUserTurn</code> wraps both fields; SYSTEM_PROMPT addendum</td>
+          </tr>
+          <tr>
+            <td class="mono small">worker/src/index.test.ts</td>
+            <td class="mono small">+92</td>
+            <td>8 new vitest cases; <code>postJson</code> helper now injects <code>CF-Connecting-IP</code></td>
+          </tr>
+          <tr>
+            <td class="mono small">web/src/lib/api.ts</td>
+            <td class="mono small">+2</td>
+            <td>F4 · localhost fallback gated by <code>import.meta.env.DEV</code></td>
+          </tr>
+          <tr>
+            <td class="mono small">README.md</td>
+            <td class="mono small">+1/-1</td>
+            <td>TASK-006 · model name aligned with deployed worker</td>
+          </tr>
+          <tr>
+            <td class="mono small">worker/.dev.vars</td>
+            <td class="mono small">±1</td>
+            <td>TASK-006 · key value rotated (gitignored — never tracked)</td>
+          </tr>
+          <tr>
+            <td class="mono small">.env.example <span class="tag" style="margin-left:6px">new</span></td>
+            <td class="mono small">+18</td>
+            <td>Env-sync · documents the root <code>.env</code> convention; placeholder only</td>
+          </tr>
+          <tr>
+            <td class="mono small">instruction/work/*.html</td>
+            <td class="mono small">~</td>
+            <td>requirements / plan / todos / session-summary (this file)</td>
+          </tr>
+        </tbody>
+      </table>
+
+      <p class="small muted" style="margin-top:8px">
+        All source changes are currently <strong>uncommitted</strong> in the working
+        tree — Wrangler deployed them straight from disk. The git history is one
+        commit behind reality. <code>commit</code> when you're ready to reconcile.
+      </p>
+
+      <hr>
+
+      <!-- ===== deployment artifacts ===== -->
+      <h2 style="margin-bottom:12px">Production state</h2>
+      <div class="grid-2">
+        <div class="card" style="border:1px solid var(--line);background:var(--card)">
+          <div class="kicker" style="margin-bottom:8px">Worker</div>
+          <table>
+            <tbody>
+              <tr><td class="mono small">Name</td><td><code>fit-analyzer-worker</code></td></tr>
+              <tr><td class="mono small">Domain</td><td><code>fit-analyzer.jairukchan.com</code></td></tr>
+              <tr><td class="mono small">Version</td><td class="mono small">f0522ce4-32c4-4f50-aa76-2c0c7adc6d1c</td></tr>
+              <tr><td class="mono small">Model</td><td><code>gemini-3.5-flash</code></td></tr>
+              <tr><td class="mono small">Secret</td><td><code>GEMINI_API_KEY</code> (rotated)</td></tr>
+            </tbody>
+          </table>
+        </div>
+        <div class="card" style="border:1px solid var(--line);background:var(--card)">
+          <div class="kicker" style="margin-bottom:8px">Health check (post-deploy)</div>
+          <div class="code">
+            <div class="top"><span>curl POST /api/analyze</span><span>200</span></div>
+            <pre><span class="c"># real payload — 5yr React + Senior JD</span>
+{
+  "overallScore": <span class="k">82</span>,
+  "verdict": <span class="s">"strong"</span>,
+  "dimensions": [
+    { "key": <span class="s">"technical_skills"</span>, "score": <span class="k">85</span> },
+    { "key": <span class="s">"experience"</span>,       "score": <span class="k">88</span> },
+    { "key": <span class="s">"education"</span>,        "score": <span class="k">70</span> },
+    { "key": <span class="s">"domain_fit"</span>,       "score": <span class="k">80</span> }
+  ],
+  <span class="c">// + summary / strengths / gaps / suggestions</span>
+}</pre>
+          </div>
+        </div>
+      </div>
+
+      <hr>
+
+      <!-- ===== follow-ups ===== -->
+      <h2 style="margin-bottom:12px">Loose ends — not blocking, but worth knowing</h2>
+      <div class="grid-2">
+        <div class="note info">
+          <span class="ic">i</span>
+          <div>
+            <strong>Naming inconsistency</strong> — root <code>.env</code> uses
+            <code>GEMINI_KEY</code>; <code>worker/.dev.vars</code> + the CF secret
+            use <code>GEMINI_API_KEY</code>. Currently fine because neither file is
+            auto-loaded (manual copy step). Normalising to <code>GEMINI_API_KEY</code>
+            everywhere would remove one footgun for future contributors.
+          </div>
+        </div>
+        <div class="note info">
+          <span class="ic">i</span>
+          <div>
+            <strong>Body-logging seam stays in.</strong> <code>worker/src/index.ts:106</code>
+            now logs Gemini's response body to <code>wrangler tail</code> on
+            non-2xx. Server-side only — never crosses to client (CLAUDE.md opaque-
+            errors rule preserved). Saved one full deploy cycle this session.
+            Revert if you'd prefer a stricter "no upstream bytes leave Google →
+            us → CF logs" stance.
+          </div>
+        </div>
+        <div class="note info">
+          <span class="ic">i</span>
+          <div>
+            <strong>Old key offboarding.</strong> The previous key
+            (<code>AIzaSyAA…</code>) is no longer in any working file. If it
+            wasn't formally revoked at Google AI Studio after rotation, doing so
+            now closes the loop.
+          </div>
+        </div>
+        <div class="note info">
+          <span class="ic">i</span>
+          <div>
+            <strong><code>web/.env.development</code> not gitignored.</strong>
+            Contains only a non-secret local URL today — no risk. Add to
+            <code>.gitignore</code> if you want defensive consistency.
+          </div>
+        </div>
+      </div>
+
+      <!-- ===== folded raw output ===== -->
+      <details class="fold">
+        <summary>QA teammate · raw test output</summary>
+        <div class="inner">
+          <div class="code">
+            <div class="top"><span>worker · npm test</span><span>vitest 4.1.7</span></div>
+            <pre>Test Files  1 passed (1)
+     Tests  14 passed (14)
+  Start at  17:50:38
+  Duration  356ms</pre>
+          </div>
+          <p class="small" style="margin-top:8px">
+            <code>tsc --noEmit</code> on both <code>worker/</code> and <code>web/</code>: silent (exit 0). <br>
+            <code>npm run build</code> on <code>web/</code>: 2.90s, 36 modules,
+            bundle sizes unchanged from session start. <br>
+            <code>npm audit</code> on both packages:
+            <code>{info:0, low:0, moderate:0, high:0, critical:0, total:0}</code>.
+          </p>
+        </div>
+      </details>
+
+      <details class="fold">
+        <summary>Security teammate · scan summary</summary>
+        <div class="inner">
+          <ul>
+            <li><strong>Working tree</strong> — pattern <code>AIzaSy[A-Za-z0-9_-]{30,}</code> hits only <code>.env</code> + <code>worker/.dev.vars</code> (both gitignored).</li>
+            <li><strong>.gitignore</strong> — covers <code>.dev.vars</code>, <code>.env</code>, <code>.env.local</code>, <code>.env.*.local</code>. <code>git check-ignore</code> confirms both secret files matched.</li>
+            <li><strong>Tracked status</strong> — <code>git ls-files .env worker/.dev.vars</code> returns empty. Neither secret file has ever been tracked.</li>
+            <li><strong>Git history</strong> — <code>git log -S "AIzaSy"</code> finds 2 commits (<code>7c3aa75</code>, <code>304efdc</code>) but every hit is a placeholder string (<code>AIzaSy_your_key_here</code>, <code>AIzaSy...</code>) — no real key value committed.</li>
+            <li><strong>HTML deliverables</strong> — <code>todos.html</code>, <code>plan.html</code>, <code>requirements.html</code>, this <code>session-summary.html</code>: zero key hits.</li>
+            <li><strong>Background logs</strong> (<code>%TEMP%\claude\…</code>) — 15+ task output files scanned. Google's 400 metadata appeared but did not echo the key value.</li>
+            <li><strong>Memory files</strong> — <code>AIzaSy</code> only appears as a placeholder/regex in <code>feedback_secret_scrubbing.md</code>.</li>
+          </ul>
+        </div>
+      </details>
+
+      <details class="fold">
+        <summary>Env-sync teammate · variable parity</summary>
+        <div class="inner">
+          <table>
+            <thead><tr><th>Pair</th><th>Real</th><th>Example</th><th>OK?</th></tr></thead>
+            <tbody>
+              <tr><td><code>worker/.dev.vars</code></td><td><code>GEMINI_API_KEY</code></td><td><code>GEMINI_API_KEY="paste-your-key-here"</code></td><td>✓</td></tr>
+              <tr><td><code>web/.env</code></td><td><code>VITE_API_BASE</code></td><td><code>VITE_API_BASE=</code> + comment</td><td>✓</td></tr>
+              <tr><td><code>web/.env.development</code></td><td><code>VITE_API_BASE</code></td><td>(shares <code>web/.env.example</code>)</td><td>✓</td></tr>
+              <tr><td>root <code>.env</code></td><td><code>GEMINI_KEY</code></td><td><strong>added this session</strong> · <code>.env.example</code></td><td>✓ (closed mid-archive)</td></tr>
+            </tbody>
+          </table>
+        </div>
+      </details>
+
+      <details class="fold">
+        <summary>Memory written this session</summary>
+        <div class="inner">
+          <ul>
+            <li><code>project_gemini_model_spec_vs_reality.md</code> — spec mentions <code>gemini-3.1-flash-lite</code> (not in current docs); prod uses <code>gemini-3.5-flash</code>. Mocked-fetch unit tests can't catch a dead model ID — only <code>wrangler tail</code> can.</li>
+            <li><code>feedback_model_tier_quality.md</code> — for this project, do not propose lite/cheaper Gemini tiers unless the user names cost as a constraint. User pushed back on a "save money?" prompt this session.</li>
+          </ul>
+        </div>
+      </details>
+
+    </div>
+  </div>
+
+</div>
+</body>
+</html>
